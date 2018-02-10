@@ -1,0 +1,12 @@
+name: Braintree Cashier
+type: module
+description: Recurring billing managed by Braintree
+core: 8.x
+package: Braintree
+dependencies:
+  - braintree_api
+  - views
+  - text
+  - options
+  - message
+  - token

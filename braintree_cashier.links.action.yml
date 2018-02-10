@@ -1,0 +1,18 @@
+
+
+entity.subscription.add_form:
+  route_name: entity.subscription.add_form
+  title: 'Add Subscription'
+  appears_on:
+    - entity.subscription.collection
+
+entity.billing_plan.add_form:
+  route_name: entity.billing_plan.add_form
+  title: 'Add Billing plan'
+  appears_on:
+    - entity.billing_plan.collection
+entity.discount.add_form:
+  route_name: entity.discount.add_form
+  title: 'Add Discount'
+  appears_on:
+    - entity.discount.collection

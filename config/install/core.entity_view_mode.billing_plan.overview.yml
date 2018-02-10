@@ -1,0 +1,9 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - braintree_cashier
+id: billing_plan.overview
+label: Overview
+targetEntityType: billing_plan
+cache: true

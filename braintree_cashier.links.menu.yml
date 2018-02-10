@@ -1,0 +1,57 @@
+
+# Subscription menu items definition
+entity.subscription.collection:
+  title: 'Subscriptions'
+  route_name: entity.subscription.collection
+  description: 'List Subscriptions'
+  parent: braintree_cashier.admin_index
+  weight: 100
+
+subscription.admin.structure.settings:
+  title: Subscription settings
+  description: 'Configure Subscription entities'
+  route_name: subscription.settings
+  parent: entity.subscription.collection
+
+braintree_cashier.admin_index:
+  title: 'Braintree Cashier'
+  route_name: braintree_cashier.admin_index
+  description: 'Configure Braintree Cashier module.'
+  parent: system.admin_config
+  weight: 5
+
+braintree_cashier.settings_form:
+  title: 'Settings'
+  route_name: braintree_cashier.braintree_cashier_settings_form
+  description: 'Configure Braintree Cashier settings.'
+  parent: braintree_cashier.admin_index
+  weight: 1
+
+
+# Billing plan menu items definition
+entity.billing_plan.collection:
+  title: 'Billing plans'
+  route_name: entity.billing_plan.collection
+  description: 'List Billing plans'
+  parent: braintree_cashier.admin_index
+  weight: 100
+
+billing_plan.admin.structure.settings:
+  title: Billing plan settings
+  description: 'Configure Billing plan entities'
+  route_name: billing_plan.settings
+  parent: entity.billing_plan.collection
+
+# Discount menu items definition
+entity.discount.collection:
+  title: 'Discounts'
+  route_name: entity.discount.collection
+  description: 'List Discount entities'
+  parent: braintree_cashier.admin_index
+  weight: 100
+
+discount.admin.structure.settings:
+  title: Discount settings
+  description: 'Configure Discount entities'
+  route_name: discount.settings
+  parent: entity.discount.collection

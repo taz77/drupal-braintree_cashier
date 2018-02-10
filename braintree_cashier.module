@@ -1,0 +1,359 @@
+<?php
+
+/**
+ * @file
+ * Contains braintree_cashier.module.
+ */
+
+use Drupal\braintree_cashier\Entity\BillingPlan;
+use Drupal\braintree_cashier\Entity\Subscription;
+use Drupal\braintree_cashier\Entity\SubscriptionInterface;
+use Drupal\braintree_cashier\Event\BraintreeCashierEvents;
+use Drupal\braintree_cashier\Event\NewAccountAfterPlan;
+use Drupal\Core\Access\AccessResult;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\Core\Field\BaseFieldDefinition;
+use Drupal\Core\Field\FieldDefinitionInterface;
+use Drupal\Core\Field\FieldItemListInterface;
+use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\Core\Session\AccountInterface;
+use Drupal\Core\Url;
+use Drupal\user\Entity\User;
+
+/**
+ * Implements hook_help().
+ */
+function braintree_cashier_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the braintree_cashier module.
+    case 'help.page.braintree_cashier':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('Recurring billing managed by braintree') . '</p>';
+      return $output;
+
+    default:
+  }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function braintree_cashier_theme() {
+  $theme = [];
+  $theme['subscription'] = [
+    'render element' => 'elements',
+    'file' => 'subscription.page.inc',
+    'template' => 'subscription',
+  ];
+  $theme['subscription_content_add_list'] = [
+    'render element' => 'content',
+    'variables' => ['content' => NULL],
+    'file' => 'subscription.page.inc',
+  ];
+  $theme['billing_plan'] = [
+    'render element' => 'elements',
+    'file' => 'billing_plan.page.inc',
+    'template' => 'billing_plan',
+  ];
+  $theme['billing_plan__overview'] = [
+    'template' => 'billing_plan--overview',
+    'base hook' => 'billing_plan',
+  ];
+  $theme['billing_plan_content_add_list'] = [
+    'render element' => 'content',
+    'variables' => ['content' => NULL],
+    'file' => 'billing_plan.page.inc',
+  ];
+  $theme['invoices'] = [
+    'template' => 'invoices',
+    'variables' => [
+      'payment_history' => [
+        '#type' => 'table',
+        '#headers' => [t('Date'), t('Amount')],
+        '#empty' => t('No payments have been made.'),
+      ],
+      'upcoming_invoice' => [
+        '#type' => 'table',
+        '#headers' => [t('Date'), t('Charge')],
+        '#empty' => t('There are no upcoming charges.'),
+      ],
+      'billing_information_form' => NULL,
+    ],
+  ];
+  $theme['my_subscription'] = [
+    'template' => 'my-subscription',
+    'variables' => [
+      'current_subscription_label' => NULL,
+      'update_subscription_form' => NULL,
+      'current_subscription_entity' => NULL,
+      'signup_button' => NULL,
+    ],
+  ];
+  $theme['single_invoice'] = [
+    'variables' => [
+      'invoice_id' => NULL,
+      'original_price' => NULL,
+      'total' => NULL,
+      'discounts' => [],
+      'invoice_site_name' => NULL,
+      'invoice_date' => NULL,
+      'business_name' => NULL,
+      'base_css_path' => NULL,
+      'braintree_cashier_css_path' => NULL,
+      'username' => NULL,
+      'user_email' => NULL,
+      'invoice_billing_information' => NULL,
+      'invoice_business_information' => NULL,
+      'notes' => t('Thank you!'),
+      'currency_code' => NULL,
+    ],
+  ];
+
+  return $theme;
+}
+
+/**
+ * Implements hook_theme_suggestions_HOOK().
+ */
+function braintree_cashier_theme_suggestions_subscription(array $variables) {
+  $suggestions = [];
+  $entity = $variables['elements']['#subscription'];
+  $sanitized_view_mode = strtr($variables['elements']['#view_mode'], '.', '_');
+
+  $suggestions[] = 'subscription__' . $sanitized_view_mode;
+  $suggestions[] = 'subscription__' . $entity->bundle();
+  $suggestions[] = 'subscription__' . $entity->bundle() . '__' . $sanitized_view_mode;
+  $suggestions[] = 'subscription__' . $entity->id();
+  $suggestions[] = 'subscription__' . $entity->id() . '__' . $sanitized_view_mode;
+  return $suggestions;
+}
+
+/**
+ * Implements hook_theme_suggestions_HOOK().
+ */
+function braintree_cashier_theme_suggestions_billing_plan(array $variables) {
+  $suggestions = [];
+  $entity = $variables['elements']['#billing_plan'];
+  $sanitized_view_mode = strtr($variables['elements']['#view_mode'], '.', '_');
+
+  $suggestions[] = 'billing_plan__' . $sanitized_view_mode;
+  $suggestions[] = 'billing_plan__' . $entity->bundle();
+  $suggestions[] = 'billing_plan__' . $entity->bundle() . '__' . $sanitized_view_mode;
+  $suggestions[] = 'billing_plan__' . $entity->id();
+  $suggestions[] = 'billing_plan__' . $entity->id() . '__' . $sanitized_view_mode;
+  return $suggestions;
+}
+
+/**
+ * Implements hook_mail().
+ */
+function braintree_cashier_mail($key, &$message, $params) {
+  switch ($key) {
+    case 'admin_error':
+      $body = t('There was an error processing payments on your site. You should consult the DB Log for more details. The error message is: %message', [
+        '%message' => $params['message'],
+      ]);
+      $message['subject'] = t('Serious error notification');
+      $message['body'][] = $body;
+      break;
+  }
+}
+
+/**
+ * Implements hook_cron().
+ *
+ * Cancel free subscriptions entities that are set to cancel at period end, and
+ * which have a period end date earlier than now. Subscriptions of other types
+ * are canceled by Braintree webhook notifications.
+ */
+function braintree_cashier_cron() {
+  // Set subscriptions status to canceled for subscriptions with a period end
+  // date earlier than now and which will cancel at period end.
+  $subscription_ids_to_cancel = \Drupal::entityQuery('subscription')
+    ->condition('cancel_at_period_end', TRUE)
+    ->condition('period_end_date', time(), '<')
+    ->condition('subscription_type', SubscriptionInterface::FREE)
+    ->execute();
+
+  $subscriptions = Subscription::loadMultiple($subscription_ids_to_cancel);
+  foreach ($subscriptions as $subscription) {
+    /** @var \Drupal\braintree_cashier\Entity\SubscriptionInterface $subscription */
+    $subscription->setStatus(SubscriptionInterface::CANCELED);
+    $subscription->save();
+  }
+}
+
+/**
+ * Implements hook_entity_base_field_info().
+ */
+function braintree_cashier_entity_base_field_info(EntityTypeInterface $entity_type) {
+  if ($entity_type->id() == 'user') {
+    $fields = [];
+    $fields['braintree_customer_id'] = BaseFieldDefinition::create('string')
+      ->setLabel(t('Braintree Customer ID'))
+      ->setDescription(t('The Braintree Customer ID provided by the Braintree API.'))
+      ->setDisplayOptions('form', [
+        'weight' => 10,
+      ])
+      ->setDisplayConfigurable('form', TRUE);
+
+    $fields['invoice_billing_information'] = BaseFieldDefinition::create('text_long')
+      ->setLabel(t('Invoice billing information'))
+      ->setDescription(t('Extra information added to invoices.'))
+      ->setDisplayOptions('form', [
+        'weight' => 10,
+      ])
+      ->setDisplayConfigurable('form', TRUE);
+
+    return $fields;
+  }
+}
+
+/**
+ * Implements hook_entity_field_access().
+ *
+ * Control access to the Braintree Customer ID field.
+ */
+function braintree_cashier_entity_field_access($operation, FieldDefinitionInterface $field_definition, AccountInterface $account, FieldItemListInterface $items = NULL) {
+  if ($field_definition->getName() == 'braintree_customer_id') {
+    if ($account->hasPermission('administer braintree cashier')) {
+      return AccessResult::allowed()->cachePerPermissions();
+    }
+    return AccessResult::forbidden('the "administer braintree cashier" permission is required')->cachePerPermissions();
+  }
+
+  if ($field_definition->getName() == 'invoice_billing_information') {
+    if ($account->hasPermission('administer braintree cashier')) {
+      return AccessResult::allowed()->cachePerPermissions()->addCacheContexts(['route.name']);
+    }
+    $route_name = Drupal::routeMatch()->getRouteName();
+    $invoice_routes = [
+      'braintree_cashier.invoices',
+      'braintree_cashier.single_invoice_view',
+      'braintree_cashier.single_invoice_download',
+    ];
+    if (in_array($route_name, $invoice_routes)) {
+      return AccessResult::allowed()->cachePerPermissions()->addCacheContexts(['route.name']);
+    }
+    return AccessResult::forbidden('the user needs to be an administrator or view their own invoice billing information on the invoices tab')->cachePerPermissions()->addCacheContexts(['route.name']);
+  }
+  return AccessResult::neutral();
+}
+
+/**
+ * Implements hook_user_login().
+ *
+ * Redirect user to the signup page with the plan selected while anonymous.
+ */
+function braintree_cashier_user_login($account) {
+  $current_request = \Drupal::service('request_stack')->getCurrentRequest();
+  $plan_id = $current_request->getSession()->get('plan_id');
+  if (is_numeric($plan_id)) {
+    $signup_url = Url::fromRoute('braintree_cashier.signup_form');
+    $signup_url->setOption('query', [
+      'plan_id' => $plan_id,
+    ]);
+    $current_request->query->set('destination', $signup_url->toString());
+    $current_request->getSession()->remove('plan_id');
+  }
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_insert().
+ *
+ * Dispatch an event when a user creates a new account after selecting a plan.
+ */
+function braintree_cashier_user_insert(User $user) {
+  /** @var \Symfony\Component\HttpFoundation\Request $current_request */
+  $current_request = \Drupal::service('request_stack')->getCurrentRequest();
+  if (!empty($current_request->getSession())) {
+    $plan_id = $current_request->getSession()->get('plan_id');
+    if (is_numeric($plan_id)) {
+      $billing_plan = BillingPlan::load($plan_id);
+      if (!empty($billing_plan) && Drupal::currentUser()->isAnonymous()) {
+        // The account was created after selecting a plan. The account was not
+        // created by an administrator.
+        $event = new NewAccountAfterPlan($billing_plan, $user);
+        $dispatcher = Drupal::getContainer()->get('event_dispatcher');
+        $dispatcher->dispatch(BraintreeCashierEvents::NEW_ACCOUNT_AFTER_PLAN, $event);
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_update().
+ *
+ * Assign or revoke roles on subscription status changes.
+ *
+ * @see \Drupal\braintree_cashier\Entity\Subscription::postCreate
+ */
+function braintree_cashier_subscription_update(EntityInterface $entity) {
+  /** @var \Drupal\braintree_cashier\Entity\SubscriptionInterface $entity */
+  /** @var \Drupal\braintree_cashier\Entity\SubscriptionInterface $original */
+  $original = $entity->original;
+  if ($original->getStatus() != $entity->getStatus()) {
+    $user = $entity->getSubscribedUser();
+    if ($entity->getStatus() == SubscriptionInterface::ACTIVE) {
+      foreach ($entity->getRolesToAssign() as $role) {
+        $user->addRole($role);
+      }
+    }
+    if ($entity->getStatus() == SubscriptionInterface::CANCELED) {
+      foreach ($entity->getRolesToRevoke() as $role) {
+        $user->removeRole($role);
+      }
+    }
+    $user->save();
+  }
+
+}
+
+/**
+ * Callback for the 'allowed_values_function'.
+ *
+ * Used for the Billing Plan and Subscription entity role assign/revoke fields.
+ *
+ * @return array
+ *   An array of roles keyed by role ID.
+ */
+function braintree_cashier_get_role_options() {
+  return array_diff_key(user_role_names(TRUE), ['authenticated' => 'Exclude Authenticated Role']);
+}
+
+/**
+ * Gets the subscription types.
+ *
+ * Used for the subscription_type field on Subscription entities.
+ *
+ * @return array
+ *   An array of subscription types keyed by machine name.
+ */
+function braintree_cashier_get_subscription_type_options() {
+  $options = [
+    SubscriptionInterface::FREE => t('Free'),
+    SubscriptionInterface::PAID_INDIVIDUAL => t('Paid Individual'),
+  ];
+  \Drupal::moduleHandler()->alter('braintree_cashier_subscription_type_options', $options);
+
+  return $options;
+}
+
+/**
+ * Gets the subscription types.
+ *
+ * Used for the subscription_type field on Billing plan entities.
+ *
+ * @return array
+ *   An array of subscription types keyed by machine name.
+ */
+function braintree_cashier_billing_plan_subscription_type_options() {
+  $options = [
+    SubscriptionInterface::PAID_INDIVIDUAL => t('Paid Individual'),
+  ];
+  \Drupal::moduleHandler()->alter('braintree_cashier_billing_plan_subscription_type_options', $options);
+
+  return $options;
+}

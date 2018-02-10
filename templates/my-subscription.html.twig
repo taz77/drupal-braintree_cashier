@@ -1,0 +1,22 @@
+{#
+/**
+ * @file my-subscription.html.twig
+ * Default theme implementation to present the My Subscription tab.
+ *
+ * This template is used when viewing the My Subscription tab on a user profile.
+ *
+ * @ingroup themeable
+ */
+#}
+<div{{ attributes.addClass('my-subscription') }}>
+
+    <h2 class="current-subscription-heading">Your Subscription Plan</h2>
+    <div class="current-subscription-label">{{ current_subscription_label }}</div>
+
+    {%  if update_subscription_form %}
+    <h3>Want to modify your subscription?</h3>
+    {{ update_subscription_form }}
+    {%  endif %}
+
+    {{ signup_button }}
+</div>

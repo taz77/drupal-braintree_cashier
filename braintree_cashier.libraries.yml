@@ -1,0 +1,23 @@
+signup:
+  js:
+    'js/signup.js': {}
+  dependencies:
+    - braintree_cashier/drop_in_ui
+    - core/drupalSettings
+
+payment_method:
+  js:
+    'js/payment_method.js': {}
+  dependencies:
+    - braintree_cashier/drop_in_ui
+    - core/drupalSettings
+
+drop_in_ui:
+  js:
+    'https://js.braintreegateway.com/web/dropin/1.9.2/js/dropin.min.js': {}
+
+plan_select:
+  js:
+    'js/plan_select_form.js': {}
+  dependencies:
+    - core/jquery

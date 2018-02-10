@@ -1,0 +1,65 @@
+<?php
+
+namespace Drupal\braintree_cashier\Plugin\Validation\Constraint;
+
+use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
+use Drupal\Core\Entity\EntityStorageInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\Validator\Constraint;
+use Symfony\Component\Validator\ConstraintValidator;
+
+/**
+ * Ensure that the period end date is not empty.
+ *
+ * The period end date should not be empty if the subscription will cancel at
+ * period end.
+ */
+class PeriodEndDateNotEmptyConstraintValidator extends ConstraintValidator implements ContainerInjectionInterface {
+
+  /**
+   * Validator 2.5 and upwards compatible execution context.
+   *
+   * @var \Symfony\Component\Validator\Context\ExecutionContextInterface
+   */
+  protected $context;
+
+  /**
+   * Subscription entity storage handler.
+   *
+   * @var \Drupal\Core\Entity\EntityStorageInterface
+   */
+  protected $subscriptionStorage;
+
+  /**
+   * Constructs a new PeriodEndDateNotEmptyConstraintValidator.
+   *
+   * @param \Drupal\Core\Entity\EntityStorageInterface $subscription_storage
+   *   The subscription entity storage handler.
+   */
+  public function __construct(EntityStorageInterface $subscription_storage) {
+    $this->subscriptionStorage = $subscription_storage;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    return new static($container->get('entity_type.manager')->getStorage('subscription'));
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function validate($entity, Constraint $constraint) {
+    /** @var \Drupal\braintree_cashier\Entity\SubscriptionInterface $entity */
+    $will_cancel_at_period_end = $entity->willCancelAtPeriodEnd();
+    $period_end_date_is_set = !empty($entity->getPeriodEndDate());
+
+    if ($will_cancel_at_period_end && !$period_end_date_is_set) {
+      $this->context->buildViolation($constraint->message)
+        ->atPath('period_end_date')
+        ->addViolation();
+    }
+  }
+
+}

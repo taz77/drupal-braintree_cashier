@@ -1,0 +1,95 @@
+# Subscription routing definition
+subscription.settings_tab:
+  route_name: subscription.settings
+  title: 'Settings'
+  base_route: subscription.settings
+
+entity.subscription.canonical:
+  route_name: entity.subscription.canonical
+  base_route: entity.subscription.canonical
+  title: 'View'
+
+entity.subscription.edit_form:
+  route_name: entity.subscription.edit_form
+  base_route: entity.subscription.canonical
+  title: 'Edit'
+
+entity.subscription.delete_form:
+  route_name:  entity.subscription.delete_form
+  base_route:  entity.subscription.canonical
+  title: Delete
+  weight: 10
+
+# Billing plan routing definition
+billing_plan.settings_tab:
+  route_name: billing_plan.settings
+  title: 'Settings'
+  base_route: billing_plan.settings
+
+entity.billing_plan.canonical:
+  route_name: entity.billing_plan.canonical
+  base_route: entity.billing_plan.canonical
+  title: 'View'
+
+entity.billing_plan.edit_form:
+  route_name: entity.billing_plan.edit_form
+  base_route: entity.billing_plan.canonical
+  title: 'Edit'
+
+entity.billing_plan.delete_form:
+  route_name:  entity.billing_plan.delete_form
+  base_route:  entity.billing_plan.canonical
+  title: Delete
+  weight: 10
+
+# Subscription tabs.
+braintree_cashier.collection:
+  title: 'Subscription'
+  route_name: braintree_cashier.my_subscription
+  base_route: entity.user.canonical
+
+braintree_cashier.my_subscription:
+  title: 'My Subscription'
+  route_name: braintree_cashier.my_subscription
+  parent_id: braintree_cashier.collection
+  weight: 0
+
+braintree_cashier.invoices:
+  title: 'Invoices'
+  route_name: braintree_cashier.invoices
+  parent_id: braintree_cashier.collection
+  weight: 10
+
+braintree_cashier.payment_method:
+  title: 'Payment method'
+  route_name: braintree_cashier.payment_method
+  parent_id: braintree_cashier.collection
+  weight: 20
+
+braintree_cashier.cancel:
+  title: 'Cancel'
+  route_name: braintree_cashier.cancel
+  parent_id: braintree_cashier.collection
+  weight: 30
+
+# Discount routing definition
+discount.settings_tab:
+  route_name: discount.settings
+  title: 'Settings'
+  base_route: discount.settings
+
+entity.discount.canonical:
+  route_name: entity.discount.canonical
+  base_route: entity.discount.canonical
+  title: 'View'
+
+entity.discount.edit_form:
+  route_name: entity.discount.edit_form
+  base_route: entity.discount.canonical
+  title: 'Edit'
+
+entity.discount.delete_form:
+  route_name:  entity.discount.delete_form
+  base_route:  entity.discount.canonical
+  title: Delete
+  weight: 10
