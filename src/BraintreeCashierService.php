@@ -7,14 +7,16 @@ use Drupal\braintree_cashier\Entity\BillingPlanInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Logger\LoggerChannelInterface;
-use Drupal\Core\Mail\MailManager;
 use Drupal\Core\Mail\MailManagerInterface;
 use Drupal\Core\Session\AccountProxy;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 
 /**
  * Class Helper.
  */
 class BraintreeCashierService {
+
+  use StringTranslationTrait;
 
   /**
    * Drupal\Core\Session\AccountProxy definition.
@@ -147,22 +149,22 @@ class BraintreeCashierService {
     switch ($processor_response_code) {
       case 2010:
         // Card Issuer Declined CVV.
-        drupal_set_message(t('Your bank reported that you entered in an invalid security code or made a typo in your card information. Please re-enter your card information.'));
+        drupal_set_message($this->t('Your bank reported that you entered in an invalid security code or made a typo in your card information. Please re-enter your card information.'));
         break;
 
       case 2006:
         // Invalid Expiration Date.
-        drupal_set_message(t('Your bank reported that you made a typo in your card expiration date. Please re-enter your card information'));
+        drupal_set_message($this->t('Your bank reported that you made a typo in your card expiration date. Please re-enter your card information'));
         break;
 
       case 2004:
         // Expired Card.
-        drupal_set_message(t('Your card has expired. Please use a different payment method.'));
+        drupal_set_message($this->t('Your card has expired. Please use a different payment method.'));
         break;
 
       case 2024:
         // Card Type Not Enabled.
-        drupal_set_message(t('Our payment processor can not use this brand of card. Please choose a different payment method.'));
+        drupal_set_message($this->t('Our payment processor can not use this brand of card. Please choose a different payment method.'));
         break;
 
       default:
@@ -171,7 +173,7 @@ class BraintreeCashierService {
           $message = check_markup($generic_message['value'], $generic_message['format']);
         }
         else {
-          $message = t('Card declined. Please either choose a different payment method or contact your bank to request accepting charges from this website.');
+          $message = $this->t('Card declined. Please either choose a different payment method or contact your bank to request accepting charges from this website.');
         }
         drupal_set_message($message, 'error');
     }
@@ -187,7 +189,7 @@ class BraintreeCashierService {
    */
   public function handleGatewayRejected($reason) {
     $this->logger->error('Gateway rejected. Reason: ' . $reason);
-    drupal_set_message(t('Our payment processor rejected this transaction, and reported the following reason: %reason', [
+    drupal_set_message($this->t('Our payment processor rejected this transaction, and reported the following reason: %reason', [
       '%reason' => $reason,
     ]), 'error');
   }
@@ -209,7 +211,7 @@ class BraintreeCashierService {
       '%code' => $transaction->processorSettlementResponseCode,
       '%message' => $transaction->processorSettlementResponseText,
     ]);
-    drupal_set_message(t('It was not possible to create your subscription. Please contact the site administrator.'));
+    drupal_set_message($this->t('It was not possible to create your subscription. Please contact the site administrator.'));
   }
 
   /**

@@ -15,6 +15,7 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Logger\LoggerChannel;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\user\Entity\User;
 use Drupal\braintree_api\BraintreeApiService;
 use Money\Currencies\ISOCurrencies;
@@ -26,6 +27,8 @@ use Symfony\Component\HttpFoundation\RequestStack;
  * Class SubscriptionService.
  */
 class SubscriptionService {
+
+  use StringTranslationTrait;
 
   /**
    * Drupal\Core\Logger\LoggerChannel definition.
@@ -366,9 +369,9 @@ class SubscriptionService {
       $discount = $this->getDiscountForSwitchToYearlyPlan($current_braintree_subscription);
     }
     else {
-      $message = t('Switching between plans with these billing frequencies is not supported. You may only switch between plans with the same billing frequency, or switch from a monthly to a yearly plan. Please try switching to a different plan, or wait until your current plan expires and then purchase another one.');
+      $message = $this->t('Switching between plans with these billing frequencies is not supported. You may only switch between plans with the same billing frequency, or switch from a monthly to a yearly plan. Please try switching to a different plan, or wait until your current plan expires and then purchase another one.');
       drupal_set_message($message, 'error');
-      $this->logger->error($message . t('Current Braintree subscription ID: %sid, target Braintree billing plan ID, %pid',
+      $this->logger->error($message . ' ' . $this->t('Current Braintree subscription ID: %sid, target Braintree billing plan ID, %pid',
           [
             '%sid' => $current_braintree_subscription->id,
             '%pid' => $target_braintree_plan->id,
@@ -479,7 +482,7 @@ class SubscriptionService {
     // Check for validation failures created by the Braintree gateway.
     // @see https://developers.braintreepayments.com/reference/general/result-objects/php#error-results
     if (!empty($result->errors) && empty($result->transaction)) {
-      drupal_set_message(t('This transaction failed with the following error message: %message', [
+      drupal_set_message($this->t('This transaction failed with the following error message: %message', [
         '%message' => $result->message,
       ]), 'error');
       $admin_message = 'Braintree failed to create the subscription, with the following message: ' . $result->message . '. Technical error details: ';
@@ -512,7 +515,7 @@ class SubscriptionService {
 
     // The failure is a mystery if this point is reached.
     $this->logger->error('A mysterious transaction failure occurred: ' . $result->message);
-    drupal_set_message(t("It wasn't possible to create a subscription. Our payment processor reported the following error: %error. You have not been charged. Please contact the site administrator.", [
+    drupal_set_message($this->t("It wasn't possible to create a subscription. Our payment processor reported the following error: %error. You have not been charged. Please contact the site administrator.", [
       '%error' => $result->message,
     ]), 'error');
 
@@ -557,12 +560,12 @@ class SubscriptionService {
     $query->condition('braintree_subscription_id', $braintree_subscription_id);
     $result = $query->execute();
     if (count($result) > 1) {
-      $message = t('More than one subscription found for id: %id', ['%id' => $braintree_subscription_id]);
+      $message = $this->t('More than one subscription found for id: %id', ['%id' => $braintree_subscription_id]);
       $this->logger->emergency($message);
       throw new \Exception($message);
     }
     if (empty($result)) {
-      $message = t('No subscription found for id: %id', ['%id' => $braintree_subscription_id]);
+      $message = $this->t('No subscription found for id: %id', ['%id' => $braintree_subscription_id]);
       $this->logger->emergency($message);
       throw new \Exception($message);
     }
@@ -605,10 +608,10 @@ class SubscriptionService {
 
     /** @var \Drupal\Core\Entity\EntityConstraintViolationListInterface $violations */
     $violations = $subscription_entity->validate();
-    $message = t('An error occurred creating the subscription. Please contact the site administrator.');
+    $message = $this->t('An error occurred creating the subscription. Please contact the site administrator.');
     foreach ($violations as $violation) {
       /** @var \Symfony\Component\Validator\ConstraintViolationInterface $violation */
-      $admin_message = t('Constraint validation failed when creating a subscription. Message: %message, Invalid value: %value', [
+      $admin_message = $this->t('Constraint validation failed when creating a subscription. Message: %message, Invalid value: %value', [
         '%message' => $violation->getMessage(),
         '%value' => print_r($violation->getInvalidValue(), TRUE),
       ]);

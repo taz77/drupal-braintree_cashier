@@ -11,6 +11,7 @@ use Drupal\Core\Datetime\DateFormatter;
 use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Render\Renderer;
 use Drupal\Core\Session\AccountInterface;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Url;
 use Drupal\user\Entity\User;
 use Money\Currencies\ISOCurrencies;
@@ -24,6 +25,8 @@ use Symfony\Component\HttpFoundation\RequestStack;
  * Class InvoicesController.
  */
 class InvoicesController extends ControllerBase {
+
+  use StringTranslationTrait;
 
   /**
    * Drupal\braintree_api\BraintreeApiService definition.
@@ -209,7 +212,7 @@ class InvoicesController extends ControllerBase {
 
     // Create payment history.
     $rows = [];
-    $header = [t('Date'), t('Amount'), t('Details')];
+    $header = [$this->t('Date'), $this->t('Amount'), $this->t('Details')];
 
     foreach ($this->transactionSuccessfulCollection as $transaction) {
       // Show refunds as negative amounts.
@@ -221,7 +224,7 @@ class InvoicesController extends ControllerBase {
         '#items' => [
           [
             '#type' => 'link',
-            '#title' => t('View'),
+            '#title' => $this->t('View'),
             '#url' => Url::fromRoute('braintree_cashier.single_invoice_view', [
               'user' => $user->id(),
               'invoice' => $transaction->id,
@@ -229,7 +232,7 @@ class InvoicesController extends ControllerBase {
           ],
           [
             '#type' => 'link',
-            '#title' => t('Download'),
+            '#title' => $this->t('Download'),
             '#url' => Url::fromRoute('braintree_cashier.single_invoice_download', [
               'user' => $user->id(),
               'invoice' => $transaction->id,
@@ -254,11 +257,11 @@ class InvoicesController extends ControllerBase {
         'class' => ['payment-history'],
       ],
       '#rows' => $rows,
-      '#empty' => t('No payments have been made.'),
+      '#empty' => $this->t('No payments have been made.'),
     ];
 
     $rows = [];
-    $header = [t('Date'), t('Charge')];
+    $header = [$this->t('Date'), $this->t('Charge')];
 
     $subscriptions = $this->billableUser->getSubscriptions($user);
     foreach ($subscriptions as $subscription) {
@@ -280,7 +283,7 @@ class InvoicesController extends ControllerBase {
         'class' => ['upcoming-invoice'],
       ],
       '#rows' => $rows,
-      '#empty' => t('There are no upcoming charges.'),
+      '#empty' => $this->t('There are no upcoming charges.'),
     ];
 
     $build['#billing_information_form'] = $this->formBuilder()->getForm('\Drupal\braintree_cashier\Form\InvoiceBillingInformationForm', $user);

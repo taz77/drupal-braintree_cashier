@@ -81,8 +81,8 @@ class InvoiceBillingInformationForm extends FormBase {
 
     $form['billing_information'] = [
       '#type' => 'textarea',
-      '#title' => t('Extra billing information'),
-      '#description' => t("Need to associate special billing information (address, instructions, etc.) with your invoices? Add it here, and we'll make sure it's included."),
+      '#title' => $this->t('Extra billing information'),
+      '#description' => $this->t("Need to associate special billing information (address, instructions, etc.) with your invoices? Add it here, and we'll make sure it's included."),
       '#default_value' => $this->billableUser->getRawInvoiceBillingInformation($user),
     ];
 

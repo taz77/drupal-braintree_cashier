@@ -8,6 +8,7 @@ use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Datetime\DateFormatterInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Render\Renderer;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\user\Entity\User;
 use Money\Currencies\ISOCurrencies;
 use Money\Formatter\IntlMoneyFormatter;
@@ -23,6 +24,8 @@ use Symfony\Component\HttpFoundation\Response;
  * Class SingleInvoiceController.
  */
 class SingleInvoiceController extends ControllerBase {
+
+  use StringTranslationTrait;
 
   /**
    * Drupal\Core\Logger\LoggerChannel definition.
@@ -215,7 +218,7 @@ class SingleInvoiceController extends ControllerBase {
       '#braintree_cashier_css_path' => $host_module_path . '/css/single-invoice.css',
       '#invoice_billing_information' => $this->billableUser->getInvoiceBillingInformation($user),
       '#invoice_business_information' => $business_information,
-      '#notes' => t('Thank you!'),
+      '#notes' => $this->t('Thank you!'),
       '#currency_code' => $currency_code,
     ];
     return $build;

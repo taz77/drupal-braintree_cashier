@@ -19,8 +19,6 @@ class DiscountForm extends ContentEntityForm {
     /* @var $entity \Drupal\braintree_cashier\Entity\Discount */
     $form = parent::buildForm($form, $form_state);
 
-    $entity = $this->entity;
-
     return $form;
   }
 

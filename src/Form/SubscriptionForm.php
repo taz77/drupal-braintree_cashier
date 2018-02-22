@@ -20,8 +20,6 @@ class SubscriptionForm extends ContentEntityForm {
     /* @var $entity \Drupal\braintree_cashier\Entity\Subscription */
     $form = parent::buildForm($form, $form_state);
 
-    $entity = $this->entity;
-
     $form['period_end_date']['widget']['#after_build'][] = [get_class($this), 'setPeriodEndDateDescription'];
 
     $form['braintree_subscription_id']['#states'] = [

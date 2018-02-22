@@ -8,6 +8,7 @@ use Drupal\Core\Access\AccessResultAllowed;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Datetime\DateFormatterInterface;
 use Drupal\Core\Session\AccountInterface;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Url;
 use Drupal\user\Entity\User;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -19,6 +20,8 @@ use Drupal\Core\Logger\LoggerChannel;
  * Class MySubscriptionController.
  */
 class MySubscriptionController extends ControllerBase {
+
+  use StringTranslationTrait;
 
   /**
    * Drupal\braintree_api\BraintreeApiService definition.
@@ -127,7 +130,7 @@ class MySubscriptionController extends ControllerBase {
       $build['#current_subscription_entity'] = $subscription;
       $current_subscription_label = $subscription->label();
       if ($subscription->willCancelAtPeriodEnd()) {
-        $current_subscription_label = t('Canceled -- access expires on %date', [
+        $current_subscription_label = $this->t('Canceled -- access expires on %date', [
           '%date' => $this->dateFormatter->format($subscription->getPeriodEndDate(), 'html_date'),
         ]);
       }
@@ -138,7 +141,7 @@ class MySubscriptionController extends ControllerBase {
     if (empty($this->billableUser->getBraintreeCustomerId($user))) {
       $build['#signup_button'] = [
         '#type' => 'link',
-        '#title' => t('Sign up'),
+        '#title' => $this->t('Sign up'),
         '#url' => Url::fromRoute('braintree_cashier.signup_form'),
         '#attributes' => ['class' => ['button', 'button--large']],
         '#prefix' => '<div class="signup-button">',

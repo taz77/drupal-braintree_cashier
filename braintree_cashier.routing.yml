@@ -4,6 +4,7 @@ braintree_cashier.signup_form:
     _form: '\Drupal\braintree_cashier\Form\SignupForm'
     _title: 'Signup'
   requirements:
+    # access is open since anyone should be allowed to visit the sign up page.
     _access: 'TRUE'
   
 braintree_cashier.admin_index:

@@ -230,7 +230,7 @@ class SignupForm extends PlanSelectFormBase {
     }
 
     if (empty($braintree_customer = $this->billableUser->createAsBraintreeCustomer($user, $values['nonce']))) {
-      drupal_set_message('You have not been charged.', 'error');
+      drupal_set_message($this->t('You have not been charged.'), 'error');
       return;
     }
 
@@ -242,7 +242,7 @@ class SignupForm extends PlanSelectFormBase {
     }
 
     if (empty($braintree_subscription = $this->subscriptionService->createBraintreeSubscription($user, $token, $billing_plan, [], $coupon_code))) {
-      drupal_set_message(t('You have not been charged.'), 'error');
+      drupal_set_message($this->t('You have not been charged.'), 'error');
       return;
     }
 
@@ -260,7 +260,7 @@ class SignupForm extends PlanSelectFormBase {
     $new_subscription_event = new NewSubscriptionEvent($braintree_subscription, $billing_plan, $subscription_entity);
     $this->eventDispatcher->dispatch(BraintreeCashierEvents::NEW_SUBSCRIPTION, $new_subscription_event);
 
-    drupal_set_message(t('You have been signed up for the %plan_name plan. Thank you, and enjoy your subscription!', [
+    drupal_set_message($this->t('You have been signed up for the %plan_name plan. Thank you, and enjoy your subscription!', [
       '%plan_name' => $billing_plan->getName(),
     ]));
   }

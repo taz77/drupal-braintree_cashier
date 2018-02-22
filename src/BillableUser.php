@@ -11,6 +11,7 @@ use Drupal\braintree_cashier\Event\PaymentMethodUpdatedEvent;
 use Drupal\Component\EventDispatcher\ContainerAwareEventDispatcher;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Logger\LoggerChannelInterface;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\user\Entity\User;
 
 /**
@@ -19,6 +20,8 @@ use Drupal\user\Entity\User;
  * @ingroup braintree_cashier
  */
 class BillableUser {
+
+  use StringTranslationTrait;
 
   /**
    * The Braintree Cashier logger channel.
@@ -113,7 +116,7 @@ class BillableUser {
         }
       }
       else {
-        drupal_set_message('Error: ' . $result->message);
+        drupal_set_message($this->t('Error: @message', ['@message' => $result->message]));
       }
       return FALSE;
     }
@@ -280,7 +283,7 @@ class BillableUser {
         }
       }
       else {
-        drupal_set_message('Card declined: ' . $result->message);
+        drupal_set_message($this->t('Card declined: @message', ['@message' => $result->message]));
       }
       return FALSE;
     }
@@ -370,7 +373,7 @@ class BillableUser {
     catch (\InvalidArgumentException $e) {
       // The customer id provided probably doesn't exist with Braintree.
       $this->logger->error('InvalidArgumentException occurred in generateClientToken: ' . $e->getMessage());
-      drupal_set_message(t('Our payment processor reported the following error: %error. Please contact the site administrator.', [
+      drupal_set_message($this->t('Our payment processor reported the following error: %error. Please contact the site administrator.', [
         '%error' => $e->getMessage(),
       ]), 'error');
     }
@@ -378,7 +381,7 @@ class BillableUser {
       // There was probably an API error of some kind. Either API credentials
       // are not configured properly, or there's an issue with Braintree.
       $this->logger->error('Exception in generateClientToken(): ' . $e->getMessage());
-      drupal_set_message(t('Our payment processor reported the following error: %error. Please try reloading the page.', ['%error' => $e->getMessage()]), 'error');
+      drupal_set_message($this->t('Our payment processor reported the following error: %error. Please try reloading the page.', ['%error' => $e->getMessage()]), 'error');
     }
   }
 
@@ -421,7 +424,7 @@ class BillableUser {
       // There was probably an API error of some kind. Either API credentials
       // are not configured properly, or there's an issue with Braintree.
       $this->logger->error('Exception in generateClientToken(): ' . $e->getMessage());
-      drupal_set_message(t('Our payment processor reported the following error: %error. Please try reloading the page.', ['%error' => $e->getMessage()]), 'error');
+      drupal_set_message($this->t('Our payment processor reported the following error: %error. Please try reloading the page.', ['%error' => $e->getMessage()]), 'error');
     }
   }
 

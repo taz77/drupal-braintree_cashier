@@ -141,7 +141,7 @@ class PlanSelectFormBase extends FormBase {
     }
     $form['plan_entity_id'] = [
       '#type' => 'select',
-      '#title' => t('Choose a plan'),
+      '#title' => $this->t('Choose a plan'),
       '#attributes' => [
         'id' => 'edit-plan-entity-id',
       ],
@@ -155,7 +155,7 @@ class PlanSelectFormBase extends FormBase {
 
     $form['coupon_container'] = [
       '#type' => 'fieldset',
-      '#title' => t('Coupon'),
+      '#title' => $this->t('Coupon'),
       '#attributes' => [
         'class' => [
           'container-inline',
@@ -167,18 +167,18 @@ class PlanSelectFormBase extends FormBase {
 
     $form['coupon_container']['coupon_code'] = [
       '#type' => 'textfield',
-      '#title' => t('Coupon code'),
+      '#title' => $this->t('Coupon code'),
       '#title_display' => 'invisible',
       '#attributes' => [
         'id' => 'coupon-code',
-        'placeholder' => t('Coupon code'),
+        'placeholder' => $this->t('Coupon code'),
       ],
     ];
 
     $form['coupon_container']['confirm_coupon_code'] = [
       '#type' => 'button',
       '#name' => 'confirm_coupon',
-      '#value' => t('Confirm coupon'),
+      '#value' => $this->t('Confirm coupon'),
       '#ajax' => [
         'callback' => '::confirmCouponCode',
         'progress' => [
@@ -246,7 +246,7 @@ class PlanSelectFormBase extends FormBase {
     if (empty($billing_plan) || !$this->bcService->discountExists($billing_plan, $coupon_code)) {
       $message = [
         '#prefix' => '<div class="coupon-result coupon-result--error">',
-        '#markup' => t('The coupon code %coupon_code is invalid.', [
+        '#markup' => $this->t('The coupon code %coupon_code is invalid.', [
           '%coupon_code' => $coupon_code,
         ]),
         '#suffix' => '</div>',
@@ -288,7 +288,7 @@ class PlanSelectFormBase extends FormBase {
       }
       $message = [
         '#prefix' => '<div class="coupon-result coupon-result--success">',
-        '#markup' => t('Success! The coupon code %code gives a discount of %discount_amount @interval @duration', [
+        '#markup' => $this->t('Success! The coupon code %code gives a discount of %discount_amount @interval @duration', [
           '@interval' => $interval,
           '%code' => $coupon_code,
           '%discount_amount' => $formatted_amount,
@@ -314,14 +314,14 @@ class PlanSelectFormBase extends FormBase {
     $billing_plan = $this->billingPlanStorage->load($values['plan_entity_id']);
     if ($form_state->getTriggeringElement()['#name'] != 'confirm_coupon') {
       if (empty($billing_plan) || !$billing_plan->isAvailableForPurchase()) {
-        $message = t('The plan selected, %plan, is invalid. Please choose a different plan', [
+        $message = $this->t('The plan selected, %plan, is invalid. Please choose a different plan', [
           '%plan' => $values['plan_entity_id'],
         ]);
         $form_state->setErrorByName('plan_entity_id', $message);
         $this->logger->error($message);
       }
       if (!empty($values['coupon_code']) && !empty($billing_plan) && !$this->bcService->discountExists($billing_plan, $values['coupon_code'])) {
-        $message = t('The coupon code %coupon_code is invalid.', [
+        $message = $this->t('The coupon code %coupon_code is invalid.', [
           '%coupon_code' => $values['coupon_code'],
         ]);
         $form_state->setErrorByName('coupon_code', $message);

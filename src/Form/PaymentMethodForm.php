@@ -90,7 +90,7 @@ class PaymentMethodForm extends FormBase {
     $form['dropin_ui'] = [
       '#markup' => '<div id="dropin-container"></div>',
       '#allowed_tags' => ['div'],
-      '#suffix' => '<p>' . t('To update an existing card, please select "Choose another way to pay" and enter the card details again.') . '</p>',
+      '#suffix' => '<p>' . $this->t('To update an existing card, please select "Choose another way to pay" and enter the card details again.') . '</p>',
     ];
 
     $form['submit'] = [
@@ -131,7 +131,7 @@ class PaymentMethodForm extends FormBase {
 
     $values = $form_state->getValues();
     if (empty($values['nonce'])) {
-      $message = t('The payment method could not be updated.');
+      $message = $this->t('The payment method could not be updated.');
       $form_state->setErrorByName('nonce', $message);
       $this->logger->error($message);
     }
@@ -151,11 +151,11 @@ class PaymentMethodForm extends FormBase {
       $result = $this->billableUser->updatePaymentMethod($user, $values['nonce']);
     }
     if ($result) {
-      $message = t('Your payment method has been updated successfully!');
+      $message = $this->t('Your payment method has been updated successfully!');
 
     }
     else {
-      $message = t('There was an error updating your payment method. Please try again.');
+      $message = $this->t('There was an error updating your payment method. Please try again.');
     }
     drupal_set_message($message);
   }

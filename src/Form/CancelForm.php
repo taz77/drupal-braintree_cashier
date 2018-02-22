@@ -98,7 +98,7 @@ class CancelForm extends FormBase {
     $form['message'] = [
       '#prefix' => '<p>',
       '#suffix' => '</p>',
-      '#markup' => t('If you wish to cancel your subscription, just click the button below. You will continue to have access until the end of the current billing period.'),
+      '#markup' => $this->t('If you wish to cancel your subscription, just click the button below. You will continue to have access until the end of the current billing period.'),
     ];
 
     $form['submit'] = [

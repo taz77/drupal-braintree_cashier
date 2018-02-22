@@ -527,7 +527,7 @@ class Subscription extends ContentEntityBase implements SubscriptionInterface {
    */
   public static function getSubscriptionTypesNeedBraintreeId() {
     $types[] = self::PAID_INDIVIDUAL;
-    \Drupal::moduleHandler()->alter('braintree_cashier_subscription_types_need_braintree_id', $type);
+    \Drupal::moduleHandler()->alter('braintree_cashier_subscription_types_need_braintree_id', $types);
     return $types;
   }
 
