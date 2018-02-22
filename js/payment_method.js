@@ -58,7 +58,7 @@
         paypal: {
           flow: 'vault'
         }
-      }, braintreeCashierDropinInitialized(createErr, dropinInstance));
+      }, braintreeCashierDropinInitialized);
     }
   };
 
