@@ -1,42 +1,58 @@
-(function(Drupal) {
+/**
+ * @file
+ * Presents Braintree's Drop-In UI on the signup form.
+ */
+(function (Drupal) {
 
   'use strict';
 
   /**
-   * Initialize the Drop-In UI and process payment method submission.
+   * Callback after the Drop-In UI has been initialized and is visible.
    *
-   * Used by the signup form.
+   * @param createErr
+   * @param {Dropin} dropinInstance
+   *
+   * @see https://braintree.github.io/braintree-web-drop-in/docs/current/Dropin.html
+   */
+  function braintreeCashierDropinInitialized(createErr, dropinInstance) {
+
+    var createNonceButton = document.querySelector('#submit-button');
+    var nonceField = document.querySelector('#nonce');
+    var finalSubmitButton = document.querySelector('#final-submit');
+
+    // Enabled the sign up button.
+    createNonceButton.disabled = false;
+
+    createNonceButton.addEventListener('click', function (event) {
+      event.preventDefault();
+      createNonceButton.disabled = true;
+      dropinInstance.requestPaymentMethod(function (requestPaymentMethodErr, payload) {
+        if (requestPaymentMethodErr) {
+          createNonceButton.disabled = false;
+        }
+        // Submit payload.nonce to the server
+        nonceField.value = payload.nonce;
+        finalSubmitButton.click();
+      });
+    });
+  }
+
+  /**
+   * Initialize the Drop-In UI.
+   *
+   * @type {Drupal~behavior}
    */
   Drupal.behaviors.braintreeCashierSignup = {
     attach: function (context, settings) {
-      var createNonceButton = document.querySelector('#submit-button');
-      var nonceField = document.querySelector('#nonce');
-      var finalSubmitButton = document.querySelector('#final-submit');
-
       braintree.dropin.create({
         authorization: settings.braintree_cashier.authorizationKey,
         container: '#dropin-container',
         paypal: {
           flow: 'vault'
         }
-      }, function (createErr, dropinInstance) {
-        // Enabled the sign up button.
-        createNonceButton.disabled = false;
-
-        createNonceButton.addEventListener('click', function (event) {
-          event.preventDefault();
-          createNonceButton.disabled = true;
-          dropinInstance.requestPaymentMethod(function (requestPaymentMethodErr, payload) {
-            if (requestPaymentMethodErr) {
-              createNonceButton.disabled = false;
-            }
-            // Submit payload.nonce to the server
-            nonceField.value = payload.nonce;
-            finalSubmitButton.click();
-          });
-        });
-      });
+      }, braintreeCashierDropinInitialized(createErr, dropinInstance));
     }
   };
+
 })(Drupal);
 
