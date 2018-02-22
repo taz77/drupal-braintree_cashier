@@ -1,50 +1,50 @@
-Introduction
+INTRODUCTION
 ------------
 
 Braintree Cashier enables recurring subscriptions by accepting a credit/debit
 card or PayPal. It requires using the Braintree payment gateway.
 
 With this module you can:
-* Accept payment by either Credit Card or PayPal.
-* Configure which Drupal Roles are granted to purchasers.
-* Configure which Drupal Roles are revoked when the subscription has expired.
+ * Accept payment by either Credit Card or PayPal.
+ * Configure which Drupal Roles are granted to purchasers.
+ * Configure which Drupal Roles are revoked when the subscription has expired.
 
 
-Requirements
+REQUIREMENTS
 ------------
 
-* You must configure your Braintree account to accept PayPal in addition to
-  cards.
-* You should make your website accessible only by HTTPS.
+ * You must configure your Braintree account to accept PayPal in addition to
+   cards.
+ * You should make your website accessible only by HTTPS.
 
 
-Dependencies
+DEPENDENCIES
 ------------
 
-* Message - https://drupal.org/project/message
-* Token - https://drupal.org/project/token.
-* Braintree API - https://drupal.org/project/braintree_api
-* Money PHP - http://moneyphp.org/en/latest/
-* Dom PDF - https://github.com/dompdf/dompdf
-* PHP Dot Env is a developer dependency for running automated functional tests
-  https://github.com/vlucas/phpdotenv
+ * Message - https://drupal.org/project/message
+ * Token - https://drupal.org/project/token.
+ * Braintree API - https://drupal.org/project/braintree_api
+ * Money PHP - http://moneyphp.org/en/latest/
+ * Dom PDF - https://github.com/dompdf/dompdf
+ * PHP Dot Env is a developer dependency for running automated functional tests
+   https://github.com/vlucas/phpdotenv
 
 
-Installation
+INSTALLATION
 ------------
 
 Install this module using `composer require drupal/braintree_cashier` in order
 to pick up dependencies, such as the Braintree PHP SDK, Money PHP, and Dom PDF.
 
 
-Configuration
+CONFIGURATION
 -------------
 
 See the installation walkthrough at
 https://www.drupal.org/docs/8/modules/braintree-cashier/installation-walkthrough
 
 
-Troubleshooting
+TROUBLESHOOTING
 ---------------
 
 When entering your private key using the Key module, if you're using a file
@@ -52,7 +52,7 @@ provider to store your private key be sure to select the option to strip away
 line endings, otherwise Webhooks received from Braintree will not validate.
 
 
-Maintainers
+MAINTAINERS
 -----------
 
 Current maintainers:
