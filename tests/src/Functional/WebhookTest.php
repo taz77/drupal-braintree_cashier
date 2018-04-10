@@ -26,11 +26,11 @@ class WebhookTest extends BrowserTestBase {
   protected $strictConfigSchema = FALSE;
 
   /**
-   * The user id created by this test.
+   * The user account created by this test.
    *
-   * @var string
+   * @var \Drupal\Core\Session\AccountInterface
    */
-  protected $uid;
+  protected $account;
 
   /**
    * The subscription entity id.
@@ -52,11 +52,11 @@ class WebhookTest extends BrowserTestBase {
     $billing_plan->set('roles_to_revoke', ['premium']);
     $billing_plan->save();
 
-    $this->uid = $this->drupalCreateUser()->id();
+    $this->account = $this->drupalCreateUser();
 
     $subscription_entity = Subscription::create([
       'subscription_type' => $billing_plan->getSubscriptionType(),
-      'subscribed_user' => $this->uid,
+      'subscribed_user' => $this->account->id(),
       'status' => SubscriptionInterface::ACTIVE,
       'name' => $billing_plan->getName(),
       'billing_plan' => $billing_plan->id(),
@@ -67,6 +67,50 @@ class WebhookTest extends BrowserTestBase {
     ]);
     $subscription_entity->save();
     $this->subscriptionEntityId = $subscription_entity->id();
+  }
+
+  /**
+   * Test updating the billing period end date upon renewal.
+   *
+   * When a user cancels after having a subscription renewed, they should see
+   * the correct date indicating when their access expires.
+   */
+  public function testPeriodEndDateUponRenewal() {
+    $user_storage = $this->container->get('entity_type.manager')->getStorage('user');
+    $account = $user_storage->load($this->account->id());
+
+    $this->drupalGet('<front>');
+
+    $sample_notification = \Braintree_WebhookTesting::sampleNotification(\Braintree_WebhookNotification::SUBSCRIPTION_CHARGED_SUCCESSFULLY, '123');
+    $this->drupalPostForm(Url::fromRoute('braintree_api_test.webhook_notification_test_form'), [
+      'bt_signature' => $sample_notification['bt_signature'],
+      'bt_payload' => $sample_notification['bt_payload'],
+    ], 'Submit');
+
+    $this->assertSession()->pageTextContains('Thanks!');
+
+
+    $this->drupalLogin($this->account);
+
+    $url = Url::fromRoute('braintree_cashier.my_subscription', [
+      'user' => $this->account->id(),
+    ]);
+    $this->drupalGet($url->toString());
+
+    $this->assertSession()->pageTextContains('CI Monthly');
+
+    // Canceling exposes the period end date on the my subscription tab.
+    $subscription_entity = Subscription::load($this->subscriptionEntityId);
+    $subscription_entity->setCancelAtPeriodEnd(TRUE);
+    $subscription_entity->save();
+
+    $this->drupalGet($url->toString());
+
+    // The sample webhook set the period end date to 2017-03-31
+    // @see \Braintree\WebhookTesting::_subscriptionChargedSuccessfullySampleXml
+    $this->assertSession()->pageTextContains('2017-03-31');
+
+
   }
 
   /**
@@ -82,7 +126,7 @@ class WebhookTest extends BrowserTestBase {
 
     // Confirm that the subscribed user has the premium role.
     /** @var \Drupal\user\Entity\User $account */
-    $account = $user_storage->load($this->uid);
+    $account = $user_storage->load($this->account->id());
     $this->assertTrue($account->hasRole('premium'), 'User has the premium role before webhook received.');
 
     // Create a sample webhook and submit it. The form will POST to the webhook
@@ -95,8 +139,8 @@ class WebhookTest extends BrowserTestBase {
     $this->assertSession()->pageTextContains('Thanks!');
 
     // Reset the cache and check that the premium role was removed.
-    $user_storage->resetCache([$this->uid]);
-    $account = $user_storage->load($this->uid);
+    $user_storage->resetCache([$this->account->id()]);
+    $account = $user_storage->load($this->account->id());
     $this->assertFalse($account->hasRole('premium'), 'The user does not have the premium role after the "subscription_canceled" webhook was received');
   }
 
@@ -114,7 +158,7 @@ class WebhookTest extends BrowserTestBase {
 
     // Confirm that the subscribed user has the premium role.
     /** @var \Drupal\user\Entity\User $account */
-    $account = $user_storage->load($this->uid);
+    $account = $user_storage->load($this->account->id());
     $this->assertTrue($account->hasRole('premium'), 'User has the premium role before webhook received.');
 
     // Confirm that the subscription is active.
@@ -137,8 +181,8 @@ class WebhookTest extends BrowserTestBase {
     $this->assertTrue($subscription->getStatus() == SubscriptionInterface::CANCELED, 'The subscription is canceled after the expired webhook');
 
     // Reset the cache and check that the premium role was removed.
-    $user_storage->resetCache([$this->uid]);
-    $account = $user_storage->load($this->uid);
+    $user_storage->resetCache([$this->account->id()]);
+    $account = $user_storage->load($this->account->id());
     $this->assertFalse($account->hasRole('premium'), 'The user does not have the premium role after the "subscription_expired" webhook was received');
   }
 

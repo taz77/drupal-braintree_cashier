@@ -85,7 +85,13 @@ class WebhookSubscriber implements EventSubscriberInterface {
    * @throws \Drupal\Core\Entity\EntityStorageException
    */
   public function handleWebhook(BraintreeApiWebhookEvent $event) {
-    if (in_array($event->getKind(), [\Braintree_WebhookNotification::SUBSCRIPTION_CANCELED, \Braintree_WebhookNotification::SUBSCRIPTION_EXPIRED])) {
+    $subscription_webhooks = [
+      \Braintree_WebhookNotification::SUBSCRIPTION_CANCELED,
+      \Braintree_WebhookNotification::SUBSCRIPTION_EXPIRED,
+      \Braintree_WebhookNotification::SUBSCRIPTION_CHARGED_SUCCESSFULLY,
+    ];
+
+    if (in_array($event->getKind(), $subscription_webhooks)) {
       $braintree_subscription = $event->getWebhookNotification()->subscription;
       try {
         $subscription_entity = $this->subscriptionService->findSubscriptionEntity($braintree_subscription->id);
@@ -95,8 +101,23 @@ class WebhookSubscriber implements EventSubscriberInterface {
         $this->bcService->sendAdminErrorEmail($e->getMessage());
         return;
       }
-      $subscription_entity->setStatus(SubscriptionInterface::CANCELED);
-      $subscription_entity->save();
+
+      // Process an expired subscription.
+      if (in_array($event->getKind(), [
+        \Braintree_WebhookNotification::SUBSCRIPTION_CANCELED,
+        \Braintree_WebhookNotification::SUBSCRIPTION_EXPIRED,
+      ])) {
+        $subscription_entity->setStatus(SubscriptionInterface::CANCELED);
+        $subscription_entity->save();
+      }
+
+      // Process a renewal. Update the period end date.
+      if ($event->getKind() == \Braintree_WebhookNotification::SUBSCRIPTION_CHARGED_SUCCESSFULLY) {
+        // Note that an upgrade mid-billing-cycle would also trigger this
+        // webhook.
+        $subscription_entity->setPeriodEndDate($braintree_subscription->billingPeriodEndDate->getTimestamp());
+        $subscription_entity->save();
+      }
     }
   }
 
