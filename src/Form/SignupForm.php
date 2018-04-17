@@ -157,7 +157,6 @@ class SignupForm extends PlanSelectFormBase {
       '#name' => 'submit_signup',
       '#attributes' => [
         'id' => 'submit-button',
-        'disabled' => TRUE,
       ],
       '#value' => $this->t('Sign up!'),
     ];

@@ -44,6 +44,8 @@
    */
   Drupal.behaviors.braintreeCashierSignup = {
     attach: function (context, settings) {
+      var createNonceButton = document.querySelector('#submit-button');
+      createNonceButton.disabled = true;
       braintree.dropin.create({
         authorization: settings.braintree_cashier.authorizationKey,
         container: '#dropin-container',
