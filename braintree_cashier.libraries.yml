@@ -14,7 +14,7 @@ payment_method:
 
 drop_in_ui:
   js:
-    'https://js.braintreegateway.com/web/dropin/1.9.2/js/dropin.min.js': {}
+    'https://js.braintreegateway.com/web/dropin/1.10.0/js/dropin.min.js': {}
 
 plan_select:
   js:
