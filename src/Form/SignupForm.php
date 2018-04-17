@@ -202,7 +202,12 @@ class SignupForm extends PlanSelectFormBase {
       if ($this->currentUser->isAnonymous() || !empty($this->billableUser->getBraintreeCustomerId($user))) {
         $message = t('Can not process this form. Please contact a site administrator.');
         $form_state->setErrorByName('form_token', $message);
-        $this->logger->error($message);
+        // We should never get here since users with a Braintree customer ID,
+        // should be redirected from this form to the My Subscription tab.
+        // Anonymous users should be redirected to the Create New Account page.
+        // @see \Drupal\braintree_cashier\EventSubscriber\KernelRequestSubscriber::kernelRequest
+        $this->logger->emergency($message);
+        $this->bcService->sendAdminErrorEmail($message);
       }
     }
   }
@@ -230,6 +235,7 @@ class SignupForm extends PlanSelectFormBase {
 
     if (empty($braintree_customer = $this->billableUser->createAsBraintreeCustomer($user, $values['nonce']))) {
       drupal_set_message($this->t('You have not been charged.'), 'error');
+      $form_state->setRebuild();
       return;
     }
 
@@ -242,6 +248,7 @@ class SignupForm extends PlanSelectFormBase {
 
     if (empty($braintree_subscription = $this->subscriptionService->createBraintreeSubscription($user, $token, $billing_plan, [], $coupon_code))) {
       drupal_set_message($this->t('You have not been charged.'), 'error');
+      $form_state->setRebuild();
       return;
     }
 
@@ -251,6 +258,7 @@ class SignupForm extends PlanSelectFormBase {
       // subscription.
       $message = t('An error occurred while creating the subscription. Unfortunately your payment method has already been charged. The site administrator has been notified, but you might wish to contact him or her yourself to troubleshoot the issue.');
       drupal_set_message($message, 'error');
+      $form_state->setRebuild();
       $this->logger->emergency($message);
       $this->bcService->sendAdminErrorEmail($message);
       return;
