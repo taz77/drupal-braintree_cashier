@@ -88,8 +88,13 @@ class PaymentMethodForm extends FormBase {
     ];
 
     $form['dropin_ui'] = [
-      '#markup' => '<div id="dropin-container"></div>',
-      '#allowed_tags' => ['div'],
+      '#type' => 'html_tag',
+      '#tag' => 'script',
+      '#attributes' => [
+        'src' => 'https://js.braintreegateway.com/web/dropin/1.10.0/js/dropin.min.js',
+        'data-braintree-dropin-authorization' => $this->billableUser->generateClientToken($user),
+        'data-paypal.flow' => 'vault',
+      ],
       '#suffix' => '<p>' . $this->t('To update an existing card, please select "Choose another way to pay" and enter the card details again.') . '</p>',
     ];
 
@@ -97,26 +102,14 @@ class PaymentMethodForm extends FormBase {
       '#type' => 'submit',
       '#attributes' => [
         'id' => 'submit-button',
-        'disabled' => TRUE,
       ],
       '#value' => $this->t('Update payment method'),
     ];
 
-    $form['nonce'] = [
+    $form['payment_method_nonce'] = [
       '#type' => 'hidden',
       '#attributes' => [
-        'id' => 'nonce',
-      ],
-    ];
-
-    $form['#attached'] = [
-      'library' => [
-        'braintree_cashier/payment_method',
-      ],
-      'drupalSettings' => [
-        'braintree_cashier' => [
-          'authorizationKey' => $this->billableUser->generateClientToken($user),
-        ],
+        'id' => 'payment_method_nonce',
       ],
     ];
 
@@ -130,9 +123,9 @@ class PaymentMethodForm extends FormBase {
     parent::validateForm($form, $form_state);
 
     $values = $form_state->getValues();
-    if (empty($values['nonce'])) {
+    if (empty($values['payment_method_nonce'])) {
       $message = $this->t('The payment method could not be updated.');
-      $form_state->setErrorByName('nonce', $message);
+      $form_state->setErrorByName('payment_method_nonce', $message);
       $this->logger->error($message);
     }
   }
@@ -145,10 +138,10 @@ class PaymentMethodForm extends FormBase {
     /** @var \Drupal\user\Entity\User $user */
     $user = $this->userStorage->load($values['uid']);
     if (empty($this->billableUser->getBraintreeCustomerId($user))) {
-      $result = $this->billableUser->createAsBraintreeCustomer($user, $values['nonce']);
+      $result = $this->billableUser->createAsBraintreeCustomer($user, $values['payment_method_nonce']);
     }
     else {
-      $result = $this->billableUser->updatePaymentMethod($user, $values['nonce']);
+      $result = $this->billableUser->updatePaymentMethod($user, $values['payment_method_nonce']);
     }
     if ($result) {
       $message = $this->t('Your payment method has been updated successfully!');
