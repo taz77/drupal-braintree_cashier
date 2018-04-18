@@ -128,7 +128,9 @@ class SignupForm extends PlanSelectFormBase {
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
 
-    // The form will be submitted by a JS trigger click on this hidden button.
+    // When the form is submitted by the Braintree JS, this hidden button will
+    // be the triggering element since it's first. This is needed to distinguish
+    // between clicks on the "Confirm Coupon" button, and the "Sign up" button.
     $form['final_submit'] = [
       '#type' => 'submit',
       '#name' => 'final_submit',
@@ -148,8 +150,13 @@ class SignupForm extends PlanSelectFormBase {
     }
 
     $form['dropin_ui'] = [
-      '#markup' => '<div id="dropin-container"></div>',
-      '#allowed_tags' => ['div'],
+      '#type' => 'html_tag',
+      '#tag' => 'script',
+      '#attributes' => [
+        'src' => 'https://js.braintreegateway.com/web/dropin/1.10.0/js/dropin.min.js',
+        'data-braintree-dropin-authorization' => $this->billableUser->generateClientToken($user),
+        'data-paypal.flow' => 'vault',
+      ],
     ];
 
     $form['submit'] = [
@@ -161,25 +168,14 @@ class SignupForm extends PlanSelectFormBase {
       '#value' => $this->t('Sign up!'),
     ];
 
-    $form['nonce'] = [
+    $form['payment_method_nonce'] = [
       '#type' => 'hidden',
       '#attributes' => [
-        'id' => 'nonce',
+        'id' => 'payment-method-nonce',
       ],
     ];
 
     $form['#attributes']['id'] = 'signup-form';
-
-    $form['#attached'] = [
-      'library' => [
-        'braintree_cashier/signup',
-      ],
-      'drupalSettings' => [
-        'braintree_cashier' => [
-          'authorizationKey' => $this->billableUser->generateClientToken($user),
-        ],
-      ],
-    ];
 
     return $form;
   }
@@ -192,9 +188,9 @@ class SignupForm extends PlanSelectFormBase {
     $values = $form_state->getValues();
 
     if ($form_state->getTriggeringElement()['#name'] == 'final_submit') {
-      if (empty($values['nonce'])) {
+      if (empty($values['payment_method_nonce'])) {
         $message = t('The payment method could not be used. Please choose a different payment method.');
-        $form_state->setErrorByName('nonce', $message);
+        $form_state->setErrorByName('payment_method_nonce', $message);
         $this->logger->error($message);
       }
       /** @var \Drupal\user\Entity\User $user */
@@ -233,7 +229,7 @@ class SignupForm extends PlanSelectFormBase {
       $this->subscriptionService->cancelNow($subscription);
     }
 
-    if (empty($braintree_customer = $this->billableUser->createAsBraintreeCustomer($user, $values['nonce']))) {
+    if (empty($braintree_customer = $this->billableUser->createAsBraintreeCustomer($user, $values['payment_method_nonce']))) {
       drupal_set_message($this->t('You have not been charged.'), 'error');
       $form_state->setRebuild();
       return;

@@ -65,7 +65,7 @@ class SignupTest extends JavascriptTestBase {
     ]);
 
     $this->getSession()->getPage()->find('css', '#submit-button')->click();
-    $this->assertSession()->waitForElementVisible('css', '.messages--status', 20000);
+    $this->assertSession()->waitForElementVisible('css', '.messages--status', 30000);
     $this->assertSession()->pageTextContains('You have been signed up for the CI Monthly plan. Thank you, and enjoy your subscription!');
   }
 

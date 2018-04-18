@@ -6,29 +6,6 @@
 
   'use strict';
 
-  function braintreeCashierDropinInitialized(createErr, dropinInstance) {
-
-    var button = document.querySelector('#submit-button');
-    var nonceField = document.querySelector('#nonce');
-    var signupForm = document.querySelector('#payment-method-form');
-
-    // Enable the update payment method button.
-    button.disabled = false;
-
-    button.addEventListener('click', function (event) {
-      event.preventDefault();
-      button.disabled = true;
-      dropinInstance.requestPaymentMethod(function (requestPaymentMethodErr, payload) {
-        if (requestPaymentMethodErr) {
-          button.disabled = false;
-        }
-        // Submit payload.nonce to the server
-        nonceField.value = payload.nonce;
-        signupForm.submit();
-      });
-    });
-  }
-
   /**
    * Initialize the Drop-In UI and process payment method submission.
    *
