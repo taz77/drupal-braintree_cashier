@@ -93,6 +93,12 @@ class WebhookSubscriber implements EventSubscriberInterface {
 
     if (in_array($event->getKind(), $subscription_webhooks)) {
       $braintree_subscription = $event->getWebhookNotification()->subscription;
+      // If the subscription has just been created, then don't bother processing
+      // this webhook. The local subscription entity might not have been created
+      // yet.
+      if ($event->getKind() == \Braintree_WebhookNotification::SUBSCRIPTION_CHARGED_SUCCESSFULLY && $braintree_subscription->createdAt->getTimestamp() < time() + 60*10) {
+        return;
+      }
       try {
         $subscription_entity = $this->subscriptionService->findSubscriptionEntity($braintree_subscription->id);
       }
