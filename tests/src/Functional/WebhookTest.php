@@ -106,7 +106,7 @@ class WebhookTest extends BrowserTestBase {
 
     $this->drupalGet($url->toString());
 
-    // The sample webhook set the period end date to 2017-03-31
+    // The sample webhook sets the period end date to 2017-03-31
     // @see \Braintree\WebhookTesting::_subscriptionChargedSuccessfullySampleXml
     $this->assertSession()->pageTextContains('2017-03-31');
 

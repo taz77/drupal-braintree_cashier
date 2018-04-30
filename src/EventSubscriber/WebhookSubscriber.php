@@ -93,10 +93,12 @@ class WebhookSubscriber implements EventSubscriberInterface {
 
     if (in_array($event->getKind(), $subscription_webhooks)) {
       $braintree_subscription = $event->getWebhookNotification()->subscription;
-      // If the subscription has just been created, then don't bother processing
-      // this webhook. The local subscription entity might not have been created
-      // yet.
-      if ($event->getKind() == \Braintree_WebhookNotification::SUBSCRIPTION_CHARGED_SUCCESSFULLY && $braintree_subscription->createdAt->getTimestamp() < time() + 60*10) {
+      // Only process renewals. The local subscription entity might not have
+      // been created yet. Check if the currentBillingCycle property exists
+      // since test webhooks don't have that property.
+      // @see \Braintree\WebhookTesting::_subscriptionChargedSuccessfullySampleXml.
+      $is_first_billing_period = !empty($braintree_subscription->currentBillingCycle) && $braintree_subscription->currentBillingCycle < 2;
+      if ($event->getKind() == \Braintree_WebhookNotification::SUBSCRIPTION_CHARGED_SUCCESSFULLY && $is_first_billing_period) {
         return;
       }
       try {
