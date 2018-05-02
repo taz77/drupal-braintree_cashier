@@ -181,7 +181,7 @@ class SubscriptionService {
         return;
       }
       // Make the current billing cycle the last billing cycle.
-      \Braintree_Subscription::update($braintree_subscription->id, [
+      $this->braintreeApi->getGateway()->subscription()->update($braintree_subscription->id, [
         'numberOfBillingCycles' => $braintree_subscription->currentBillingCycle,
       ]);
     }
@@ -212,7 +212,7 @@ class SubscriptionService {
    *   The braintree subscription object.
    */
   public function asBraintreeSubscription(SubscriptionInterface $subscription) {
-    return \Braintree_Subscription::find($subscription->getBraintreeSubscriptionId());
+    return $this->braintreeApi->getGateway()->subscription()->find($subscription->getBraintreeSubscriptionId());
   }
 
   /**
@@ -226,7 +226,7 @@ class SubscriptionService {
   public function cancelNow(SubscriptionInterface $subscription) {
     if ($this->isBraintreeManaged($subscription)) {
       $braintree_subscription = $this->asBraintreeSubscription($subscription);
-      \Braintree_Subscription::cancel($braintree_subscription->id);
+      $this->braintreeApi->getGateway()->subscription()->cancel($braintree_subscription->id);
     }
     $subscription->setStatus(SubscriptionInterface::CANCELED);
     $subscription->save();
@@ -258,7 +258,7 @@ class SubscriptionService {
 
     $new_braintree_plan = $this->bcService->getBraintreeBillingPlan($billing_plan->getBraintreePlanId());
 
-    $result = \Braintree_Subscription::update($braintree_subscription->id, [
+    $result = $this->braintreeApi->getGateway()->subscription()->update($braintree_subscription->id, [
       'planId' => $billing_plan->getBraintreePlanId(),
       'neverExpires' => TRUE,
       'price' => $new_braintree_plan->price,
@@ -307,7 +307,7 @@ class SubscriptionService {
       throw new \LogicException('Unable to resume subscription that is not within grace period.');
     }
     $braintree_subscription = $this->asBraintreeSubscription($subscription);
-    \Braintree_Subscription::update($braintree_subscription->id, [
+    $this->braintreeApi->getGateway()->subscription()->update($braintree_subscription->id, [
       'neverExpires' => TRUE,
       'numberOfBillingCycles' => NULL,
     ]);
@@ -456,7 +456,7 @@ class SubscriptionService {
       $payload = $this->addCouponToPayload($coupon, $payload);
     }
 
-    $result = \Braintree_Subscription::create($payload);
+    $result = $this->braintreeApi->getGateway()->subscription()->create($payload);
 
     if (!$result->success) {
       $this->processBraintreeSubscriptionCreateFailure($result);

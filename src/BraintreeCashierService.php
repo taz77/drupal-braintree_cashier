@@ -226,7 +226,7 @@ class BraintreeCashierService {
    * @throws \Exception
    */
   public function getBraintreeBillingPlan($braintree_plan_id) {
-    $plans = \Braintree_Plan::all();
+    $plans = $this->braintreeApi->getGateway()->plan()->all();
     foreach ($plans as $plan) {
       if ($plan->id == $braintree_plan_id) {
         return $plan;
@@ -247,7 +247,7 @@ class BraintreeCashierService {
    * @throws \Exception
    */
   public function getBraintreeDiscount($discount_id) {
-    $discounts = \Braintree_Discount::all();
+    $discounts = $this->braintreeApi->getGateway()->discount()->all();
     foreach ($discounts as $discount) {
       if ($discount->id == $discount_id) {
         return $discount;

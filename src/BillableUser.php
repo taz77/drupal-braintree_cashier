@@ -2,7 +2,7 @@
 
 namespace Drupal\braintree_cashier;
 
-use Braintree\PaymentMethod;
+use Drupal\braintree_api\BraintreeApiService;
 use Drupal\braintree_cashier\Entity\SubscriptionInterface;
 use Drupal\braintree_cashier\Event\BraintreeCashierEvents;
 use Drupal\braintree_cashier\Event\BraintreeCustomerCreatedEvent;
@@ -52,6 +52,13 @@ class BillableUser {
   protected $eventDispatcher;
 
   /**
+   * The Braintree API service.
+   *
+   * @var \Drupal\braintree_api\BraintreeApiService
+   */
+  protected $braintreeApiService;
+
+  /**
    * BillableUser constructor.
    *
    * @param \Drupal\Core\Logger\LoggerChannelInterface $logger
@@ -62,14 +69,17 @@ class BillableUser {
    *   The braintree cashier service.
    * @param \Drupal\Component\EventDispatcher\ContainerAwareEventDispatcher $eventDispatcher
    *   The container aware event dispatcher.
+   * @param \Drupal\braintree_api\BraintreeApiService
+   *   The Braintree API service.
    *
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    */
-  public function __construct(LoggerChannelInterface $logger, EntityTypeManagerInterface $entity_type_manager, BraintreeCashierService $bcService, ContainerAwareEventDispatcher $eventDispatcher) {
+  public function __construct(LoggerChannelInterface $logger, EntityTypeManagerInterface $entity_type_manager, BraintreeCashierService $bcService, ContainerAwareEventDispatcher $eventDispatcher, BraintreeApiService $braintreeApiService) {
     $this->logger = $logger;
     $this->subscriptionStorage = $entity_type_manager->getStorage('subscription');
     $this->bcService = $bcService;
     $this->eventDispatcher = $eventDispatcher;
+    $this->braintreeApiService = $braintreeApiService;
   }
 
   /**
@@ -100,7 +110,7 @@ class BillableUser {
         'makeDefault' => TRUE,
       ],
     ];
-    $result = PaymentMethod::create($payload);
+    $result = $this->braintreeApiService->getGateway()->paymentMethod()->create($payload);
 
     if (!$result->success) {
       $this->logger->error('Error creating payment method: ' . $result->message);
@@ -145,7 +155,7 @@ class BillableUser {
    *   The Braintree not found exception.
    */
   public function asBraintreeCustomer(User $user) {
-    return \Braintree_Customer::find($this->getBraintreeCustomerId($user));
+    return $this->braintreeApiService->getGateway()->customer()->find($this->getBraintreeCustomerId($user));
   }
 
   /**
@@ -172,7 +182,8 @@ class BillableUser {
   public function updateSubscriptionsToPaymentMethod(User $user, $token) {
     foreach ($this->getSubscriptions($user) as $subscription_entity) {
       /* @var $subscription_entity \Drupal\braintree_cashier\Entity\SubscriptionInterface */
-      \Braintree_Subscription::update($subscription_entity->getBraintreeSubscriptionId(), [
+      $this->braintreeApiService->getGateway()->subscription()->update(
+        $subscription_entity->getBraintreeSubscriptionId(), [
         'paymentMethodToken' => $token,
       ]);
     }
@@ -218,9 +229,8 @@ class BillableUser {
     $customer = $this->asBraintreeCustomer($user);
 
     foreach ($customer->paymentMethods as $paymentMethod) {
-      /** @var \Braintree\PaymentMethod $paymentMethod */
       if (!$paymentMethod->isDefault()) {
-        PaymentMethod::delete($paymentMethod->token);
+        $this->braintreeApiService->getGateway()->paymentMethod()->delete($paymentMethod->token);
       }
     }
   }
@@ -258,7 +268,7 @@ class BillableUser {
    *   The Braintree customer object.
    */
   public function createAsBraintreeCustomer(User $user, $nonce) {
-    $result = \Braintree_Customer::create([
+    $result = $this->braintreeApiService->getGateway()->customer()->create([
       'firstName' => $user->getAccountName(),
       'email' => $user->getEmail(),
       'paymentMethodNonce' => $nonce,
@@ -357,7 +367,7 @@ class BillableUser {
     $version = $this->sanitizeVersion($version);
     try {
       if (!empty($user) && !empty($this->getBraintreeCustomerId($user))) {
-        return \Braintree_ClientToken::generate([
+        return $this->braintreeApiService->getGateway()->clientToken()->generate([
           'customerId' => $this->getBraintreeCustomerId($user),
           'version' => $version,
           'options' => [
@@ -416,7 +426,7 @@ class BillableUser {
   public function generateAnonymousClientToken($version = 3) {
     $version = $this->sanitizeVersion($version);
     try {
-      return \Braintree_ClientToken::generate([
+      return $this->braintreeApiService->getGateway()->clientToken()->generate([
         'version' => $version,
       ]);
     }
