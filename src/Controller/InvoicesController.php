@@ -33,7 +33,7 @@ class InvoicesController extends ControllerBase {
    *
    * @var \Drupal\braintree_api\BraintreeApiService
    */
-  protected $braintreeApiBraintreeApi;
+  protected $braintreeApi;
 
   /**
    * The user storage.
@@ -123,7 +123,7 @@ class InvoicesController extends ControllerBase {
    * Constructs a new InvoicesController object.
    */
   public function __construct(BraintreeApiService $braintree_api_braintree_api, DateFormatter $date_formatter, RequestStack $request_stack, BraintreeCashierService $braintree_cashier_service, BillableUser $billable_user, SubscriptionService $subscriptionService, Renderer $renderer, LoggerChannelInterface $logger) {
-    $this->braintreeApiBraintreeApi = $braintree_api_braintree_api;
+    $this->braintreeApi = $braintree_api_braintree_api;
     $this->userStorage = $this->entityTypeManager()->getStorage('user');
     $this->dateFormatter = $date_formatter;
     $this->requestStack = $request_stack;
@@ -201,7 +201,7 @@ class InvoicesController extends ControllerBase {
     }
 
     /* @var \Braintree\ResourceCollection transactionSuccessfulCollection */
-    $this->transactionSuccessfulCollection = \Braintree_Transaction::search([
+    $this->transactionSuccessfulCollection = $this->braintreeApi->getGateway()->transaction()->search([
       \Braintree_TransactionSearch::customerId()->is($braintree_customer->id),
       \Braintree_TransactionSearch::status()->in($this->bcService->getTransactionCompletedStatuses()),
     ]);

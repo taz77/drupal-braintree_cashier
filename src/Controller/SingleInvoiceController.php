@@ -278,7 +278,7 @@ class SingleInvoiceController extends ControllerBase {
    *   The Braintree transaction object.
    */
   private function asBraintreeTransaction($invoice) {
-    return \Braintree_Transaction::find($invoice);
+    return $this->braintreeApi->getGateway()->transaction()->find($invoice);
   }
 
 }

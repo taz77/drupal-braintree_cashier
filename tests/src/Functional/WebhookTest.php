@@ -40,11 +40,19 @@ class WebhookTest extends BrowserTestBase {
   protected $subscriptionEntityId;
 
   /**
+   * The Braintree API service.
+   *
+   * @var \Drupal\braintree_api\BraintreeApiService
+   */
+  protected $braintreeApi;
+
+  /**
    * {@inheritdoc}
    */
   protected function setUp() {
     parent::setUp();
     $this->setupBraintreeApi();
+    $this->braintreeApi = \Drupal::service('braintree_api.braintree_api');
     $billing_plan = $this->createMonthlyBillingPlan();
     $this->createRole([], 'premium', 'Premium');
 
@@ -76,12 +84,9 @@ class WebhookTest extends BrowserTestBase {
    * the correct date indicating when their access expires.
    */
   public function testPeriodEndDateUponRenewal() {
-    $user_storage = $this->container->get('entity_type.manager')->getStorage('user');
-    $account = $user_storage->load($this->account->id());
-
     $this->drupalGet('<front>');
 
-    $sample_notification = \Braintree_WebhookTesting::sampleNotification(\Braintree_WebhookNotification::SUBSCRIPTION_CHARGED_SUCCESSFULLY, '123');
+    $sample_notification = $this->braintreeApi->getGateway()->webhookTesting()->sampleNotification(\Braintree_WebhookNotification::SUBSCRIPTION_CHARGED_SUCCESSFULLY, '123');
     $this->drupalPostForm(Url::fromRoute('braintree_api_test.webhook_notification_test_form'), [
       'bt_signature' => $sample_notification['bt_signature'],
       'bt_payload' => $sample_notification['bt_payload'],
@@ -131,7 +136,7 @@ class WebhookTest extends BrowserTestBase {
 
     // Create a sample webhook and submit it. The form will POST to the webhook
     // url /braintree/webhooks, simulating the same POST request from Braintree.
-    $sample_notification = \Braintree_WebhookTesting::sampleNotification(\Braintree_WebhookNotification::SUBSCRIPTION_CANCELED, '123');
+    $sample_notification = $this->braintreeApi->getGateway()->webhookTesting()->sampleNotification(\Braintree_WebhookNotification::SUBSCRIPTION_CANCELED, '123');
     $this->drupalPostForm(Url::fromRoute('braintree_api_test.webhook_notification_test_form'), [
       'bt_signature' => $sample_notification['bt_signature'],
       'bt_payload' => $sample_notification['bt_payload'],
@@ -168,7 +173,7 @@ class WebhookTest extends BrowserTestBase {
 
     // Create a sample webhook and submit it. The form will POST to the webhook
     // url /braintree/webhooks, simulating the same POST request from Braintree.
-    $sample_notification = \Braintree_WebhookTesting::sampleNotification(\Braintree_WebhookNotification::SUBSCRIPTION_EXPIRED, '123');
+    $sample_notification = $this->braintreeApi->getGateway()->webhookTesting()->sampleNotification(\Braintree_WebhookNotification::SUBSCRIPTION_EXPIRED, '123');
     $this->drupalPostForm(Url::fromRoute('braintree_api_test.webhook_notification_test_form'), [
       'bt_signature' => $sample_notification['bt_signature'],
       'bt_payload' => $sample_notification['bt_payload'],

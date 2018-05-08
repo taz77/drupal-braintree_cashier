@@ -45,9 +45,6 @@ trait BraintreeCashierTrait {
       'sandbox_private_key' => 'braintree_sandbox_private_key',
       'sandbox_merchant_id' => getenv('BRAINTREE_SANDBOX_MERCHANT_ID'),
     ])->save();
-    // Load the Braintree API service to initialize configuration so that
-    // calls directly to Braintree PHP SDK functions will work.
-    \Drupal::service('braintree_api.braintree_api');
   }
 
   /**
