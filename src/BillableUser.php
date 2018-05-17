@@ -69,7 +69,7 @@ class BillableUser {
    *   The braintree cashier service.
    * @param \Drupal\Component\EventDispatcher\ContainerAwareEventDispatcher $eventDispatcher
    *   The container aware event dispatcher.
-   * @param \Drupal\braintree_api\BraintreeApiService
+   * @param \Drupal\braintree_api\BraintreeApiService $braintreeApiService
    *   The Braintree API service.
    *
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
@@ -184,8 +184,8 @@ class BillableUser {
       /* @var $subscription_entity \Drupal\braintree_cashier\Entity\SubscriptionInterface */
       $this->braintreeApiService->getGateway()->subscription()->update(
         $subscription_entity->getBraintreeSubscriptionId(), [
-        'paymentMethodToken' => $token,
-      ]);
+          'paymentMethodToken' => $token,
+        ]);
     }
   }
 

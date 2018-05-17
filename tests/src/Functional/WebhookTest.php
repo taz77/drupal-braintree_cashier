@@ -94,7 +94,6 @@ class WebhookTest extends BrowserTestBase {
 
     $this->assertSession()->pageTextContains('Thanks!');
 
-
     $this->drupalLogin($this->account);
 
     $url = Url::fromRoute('braintree_cashier.my_subscription', [
@@ -111,11 +110,9 @@ class WebhookTest extends BrowserTestBase {
 
     $this->drupalGet($url->toString());
 
-    // The sample webhook sets the period end date to 2017-03-31
+    // The sample webhook sets the period end date to 2017-03-31.
     // @see \Braintree\WebhookTesting::_subscriptionChargedSuccessfullySampleXml
     $this->assertSession()->pageTextContains('2017-03-31');
-
-
   }
 
   /**
