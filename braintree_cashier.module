@@ -30,7 +30,9 @@ function braintree_cashier_help($route_name, RouteMatchInterface $route_match) {
     case 'help.page.braintree_cashier':
       $output = '';
       $output .= '<h3>' . t('About') . '</h3>';
-      $output .= '<p>' . t('Recurring billing managed by braintree') . '</p>';
+      $output .= '<p>' . t('Recurring billing managed by Braintree.') . '</p>';
+      $output .= '<p>' . t('Please refer to the <a href="@docs">documentation handbook</a> on Drupal.org.',
+          ['@docs' => 'https://www.drupal.org/docs/8/modules/braintree-cashier']);
       return $output;
 
     default:
