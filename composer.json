@@ -3,6 +3,7 @@
     "description": "Recurring billing managed by Braintree",
     "type": "drupal-module",
     "require": {
+        "drupal/braintree_api": "^2.0",
         "moneyphp/money": "^3.0",
         "dompdf/dompdf": "^0.8.1"
     },
