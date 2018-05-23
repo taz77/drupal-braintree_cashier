@@ -16,6 +16,8 @@ REQUIREMENTS
  * You must configure your Braintree account to accept PayPal in addition to
    cards.
  * You should make your website accessible only by HTTPS.
+ * PHP version 5.6+ due to the Money PHP requirement.
+ * PECL intl >= 1.0.0 (search for "intl" in the output of phpinfo() so see if you have this installed.)
 
 
 DEPENDENCIES
