@@ -10,3 +10,5 @@ dependencies:
   - drupal:options
   - message:message
   - token:token
+
+configure: braintree_cashier.admin_index
