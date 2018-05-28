@@ -16,7 +16,7 @@ services:
 
   braintree_cashier.braintree_cashier_service:
     class: Drupal\braintree_cashier\BraintreeCashierService
-    arguments: ['@current_user', '@plugin.manager.mail', '@config.factory', '@entity_type.manager', '@braintree_api.braintree_api', '@logger.channel.braintree_cashier']
+    arguments: ['@current_user', '@plugin.manager.mail', '@config.factory', '@entity_type.manager', '@braintree_api.braintree_api', '@logger.channel.braintree_cashier', '@request_stack']
 
   braintree_cashier.billable_user:
     class: Drupal\braintree_cashier\BillableUser

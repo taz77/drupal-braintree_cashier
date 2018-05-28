@@ -259,8 +259,7 @@ class PlanSelectFormBase extends FormBase {
       // Setup Money.
       $currencies = new ISOCurrencies();
       $moneyParser = new DecimalMoneyParser($currencies);
-      $locale = $this->requestStack->getCurrentRequest()->getLocale();
-      $numberFormatter = new \NumberFormatter($locale, \NumberFormatter::CURRENCY);
+      $numberFormatter = new \NumberFormatter($this->bcService->getLocale(), \NumberFormatter::CURRENCY);
       $moneyFormatter = new IntlMoneyFormatter($numberFormatter, $currencies);
 
       $amount = $moneyParser->parse($braintree_discount->amount, $this->config('braintree_cashier.settings')

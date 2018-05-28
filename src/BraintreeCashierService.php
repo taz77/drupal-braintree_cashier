@@ -10,6 +10,7 @@ use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Mail\MailManagerInterface;
 use Drupal\Core\Session\AccountProxy;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
  * Class Helper.
@@ -70,6 +71,13 @@ class BraintreeCashierService {
   protected $discountStorage;
 
   /**
+   * The request stack.
+   *
+   * @var \Symfony\Component\HttpFoundation\RequestStack
+   */
+  protected $requestStack;
+
+  /**
    * Constructs a new Helper object.
    *
    * @param \Drupal\Core\Session\AccountProxy $current_user
@@ -84,10 +92,12 @@ class BraintreeCashierService {
    *   The Braintree API service.
    * @param \Drupal\Core\Logger\LoggerChannelInterface $logger
    *   The braintree_cashier logger channel.
+   * @param \Symfony\Component\HttpFoundation\RequestStack $requestStack
+   *   The request stack.
    *
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    */
-  public function __construct(AccountProxy $current_user, MailManagerInterface $plugin_manager_mail, ConfigFactoryInterface $config_factory, EntityTypeManagerInterface $entity_type_manager, BraintreeApiService $braintree_api, LoggerChannelInterface $logger) {
+  public function __construct(AccountProxy $current_user, MailManagerInterface $plugin_manager_mail, ConfigFactoryInterface $config_factory, EntityTypeManagerInterface $entity_type_manager, BraintreeApiService $braintree_api, LoggerChannelInterface $logger, RequestStack $requestStack) {
     $this->currentUser = $current_user;
     $this->mailManager = $plugin_manager_mail;
     $this->configFactory = $config_factory;
@@ -95,6 +105,7 @@ class BraintreeCashierService {
     $this->discountStorage = $entity_type_manager->getStorage('discount');
     $this->braintreeApi = $braintree_api;
     $this->logger = $logger;
+    $this->requestStack = $requestStack;
   }
 
   /**
@@ -303,6 +314,19 @@ class BraintreeCashierService {
       return TRUE;
     }
     return FALSE;
+  }
+
+  /**
+   * Gets the locale to use with the \NumberFormatter class.
+   *
+   * @return string
+   *   The locale.
+   */
+  public function getLocale() {
+    if ($this->configFactory->get('braintree_cashier.settings')->get('force_locale_en')) {
+      return 'en';
+    }
+    return $this->requestStack->getCurrentRequest()->getLocale();
   }
 
 }

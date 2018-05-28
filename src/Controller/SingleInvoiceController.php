@@ -4,6 +4,7 @@ namespace Drupal\braintree_cashier\Controller;
 
 use Braintree\Transaction;
 use Dompdf\Dompdf;
+use Drupal\braintree_cashier\BraintreeCashierService;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Datetime\DateFormatterInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
@@ -91,9 +92,16 @@ class SingleInvoiceController extends ControllerBase {
   protected $moneyFormatter;
 
   /**
+   * The Braintree Cashier Service.
+   *
+   * @var \Drupal\braintree_cashier\BraintreeCashierService
+   */
+  protected $bcService;
+
+  /**
    * Constructs a new SingleInvoiceController object.
    */
-  public function __construct(LoggerChannel $logger_channel_braintree_cashier, BraintreeApiService $braintree_api_braintree_api, BillableUser $braintree_cashier_billable_user, Renderer $renderer, DateFormatterInterface $dateFormatter, RequestStack $requestStack, ModuleHandlerInterface $moduleHandler) {
+  public function __construct(LoggerChannel $logger_channel_braintree_cashier, BraintreeApiService $braintree_api_braintree_api, BillableUser $braintree_cashier_billable_user, Renderer $renderer, DateFormatterInterface $dateFormatter, RequestStack $requestStack, ModuleHandlerInterface $moduleHandler, BraintreeCashierService $bcService) {
     $this->logger = $logger_channel_braintree_cashier;
     $this->braintreeApi = $braintree_api_braintree_api;
     $this->billableUser = $braintree_cashier_billable_user;
@@ -101,12 +109,12 @@ class SingleInvoiceController extends ControllerBase {
     $this->dateFormatter = $dateFormatter;
     $this->requestStack = $requestStack;
     $this->moduleHandler = $moduleHandler;
+    $this->bcService = $bcService;
 
     // Setup Money.
     $currencies = new ISOCurrencies();
     $this->moneyParser = new DecimalMoneyParser($currencies);
-    $locale = $this->requestStack->getCurrentRequest()->getLocale();
-    $numberFormatter = new \NumberFormatter($locale, \NumberFormatter::CURRENCY);
+    $numberFormatter = new \NumberFormatter($this->bcService->getLocale(), \NumberFormatter::CURRENCY);
     $this->moneyFormatter = new IntlMoneyFormatter($numberFormatter, $currencies);
 
   }
@@ -122,7 +130,8 @@ class SingleInvoiceController extends ControllerBase {
       $container->get('renderer'),
       $container->get('date.formatter'),
       $container->get('request_stack'),
-      $container->get('module_handler')
+      $container->get('module_handler'),
+      $container->get('braintree_cashier.braintree_cashier_service')
     );
   }
 

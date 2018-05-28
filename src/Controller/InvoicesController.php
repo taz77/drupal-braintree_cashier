@@ -50,13 +50,6 @@ class InvoicesController extends ControllerBase {
   protected $dateFormatter;
 
   /**
-   * The request stack.
-   *
-   * @var \Symfony\Component\HttpFoundation\RequestStack
-   */
-  protected $requestStack;
-
-  /**
    * The decimal money parser.
    *
    * @var \Money\Parser\DecimalMoneyParser
@@ -134,8 +127,7 @@ class InvoicesController extends ControllerBase {
     // Setup Money.
     $currencies = new ISOCurrencies();
     $this->moneyParser = new DecimalMoneyParser($currencies);
-    $locale = $this->requestStack->getCurrentRequest()->getLocale();
-    $numberFormatter = new \NumberFormatter($locale, \NumberFormatter::CURRENCY);
+    $numberFormatter = new \NumberFormatter($this->bcService->getLocale(), \NumberFormatter::CURRENCY);
     $this->moneyFormatter = new IntlMoneyFormatter($numberFormatter, $currencies);
 
     $this->subscriptionService = $subscriptionService;
