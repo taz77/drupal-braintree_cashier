@@ -45,6 +45,17 @@ class SettingsForm extends ConfigFormBase {
       '#default_value' => $config->get('currency_code'),
     ];
 
+    $form['force_locale_en'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Force using the <em>en</em> locale'),
+      '#description' => $this->t('This is necessary only if your web host does not have the PHP <a href="@url_intl">intl</a> extension and you have therefore run <code>composer require symfony/intl</code>. <a href="@url_symfony_intl">Symfony intl</a> requires the <em>en</em> locale and PHP 7.1.3+. Visit <a href="@php_info">PHP info</a> and search for <em>intl</em> to see if your host already has this extension.', [
+        '@url_intl' => 'http://php.net/manual/en/intl.installation.php',
+        '@url_symfony_intl' => 'http://symfony.com/doc/current/components/intl.html',
+        '@php_info' => Url::fromRoute('system.php')->toString(),
+      ]),
+      '#default_value' => $config->get('force_locale_en'),
+    ];
+
     $form['generic_declined_message'] = [
       '#type' => 'text_format',
       '#format' => empty($config->get('generic_declined_message')['format']) ? NULL : $config->get('generic_declined_message')['format'],
@@ -92,9 +103,10 @@ class SettingsForm extends ConfigFormBase {
       'generic_declined_message',
       'currency_code',
       'invoice_business_information',
+      'force_locale_en',
     ];
     foreach ($keys as $key) {
-      if (!empty($values[$key])) {
+      if (isset($values[$key])) {
         $config->set($key, $values[$key]);
       }
     }
