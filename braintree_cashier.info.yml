@@ -9,6 +9,7 @@ dependencies:
   - drupal:text
   - drupal:options
   - message:message
+  - message_notify:message_notify
   - token:token
 
 configure: braintree_cashier.admin_index

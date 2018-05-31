@@ -209,6 +209,14 @@ function braintree_cashier_entity_base_field_info(EntityTypeInterface $entity_ty
       ])
       ->setDisplayConfigurable('form', TRUE);
 
+    $fields['had_free_trial'] = BaseFieldDefinition::create('boolean')
+      ->setDefaultValue(FALSE)
+      ->setLabel(t('Had Free Trial'))
+      ->setDescription(t('Indicates whether this user has already had a free trial subscription.'))
+      ->setDisplayOptions('form', [
+        'weight' => 10,
+      ]);
+
     return $fields;
   }
 }
@@ -219,7 +227,7 @@ function braintree_cashier_entity_base_field_info(EntityTypeInterface $entity_ty
  * Control access to the Braintree Customer ID field.
  */
 function braintree_cashier_entity_field_access($operation, FieldDefinitionInterface $field_definition, AccountInterface $account, FieldItemListInterface $items = NULL) {
-  if ($field_definition->getName() == 'braintree_customer_id') {
+  if ($field_definition->getName() == 'braintree_customer_id' || $field_definition->getName() == 'had_free_trial') {
     if ($account->hasPermission('administer braintree cashier')) {
       return AccessResult::allowed()->cachePerPermissions();
     }
