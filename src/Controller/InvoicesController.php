@@ -192,66 +192,7 @@ class InvoicesController extends ControllerBase {
       return $build;
     }
 
-    /* @var \Braintree\ResourceCollection transactionSuccessfulCollection */
-    $this->transactionSuccessfulCollection = $this->braintreeApi->getGateway()->transaction()->search([
-      \Braintree_TransactionSearch::customerId()->is($braintree_customer->id),
-      \Braintree_TransactionSearch::status()->in($this->bcService->getTransactionCompletedStatuses()),
-    ]);
-
-    if (empty($this->transactionSuccessfulCollection->getIds())) {
-      return $build;
-    }
-
-    // Create payment history.
-    $rows = [];
-    $header = [$this->t('Date'), $this->t('Amount'), $this->t('Details')];
-
-    foreach ($this->transactionSuccessfulCollection as $transaction) {
-      // Show refunds as negative amounts.
-      $amount = $this->moneyParser->parse($transaction->amount, $this->config->get('currency_code'));
-
-      $details = [
-        '#theme' => 'item_list',
-        '#type' => 'ul',
-        '#items' => [
-          [
-            '#type' => 'link',
-            '#title' => $this->t('View'),
-            '#url' => Url::fromRoute('braintree_cashier.single_invoice_view', [
-              'user' => $user->id(),
-              'invoice' => $transaction->id,
-            ]),
-          ],
-          [
-            '#type' => 'link',
-            '#title' => $this->t('Download'),
-            '#url' => Url::fromRoute('braintree_cashier.single_invoice_download', [
-              'user' => $user->id(),
-              'invoice' => $transaction->id,
-            ]),
-          ],
-        ],
-
-      ];
-
-      $amount_prefix = $transaction->type == \Braintree_Transaction::SALE ? '' : '-';
-      $rows[] = [
-        $this->dateFormatter->format($transaction->createdAt->getTimestamp()),
-        $amount_prefix . $this->moneyFormatter->format($amount),
-        ['data' => $details],
-      ];
-    }
-
-    $build['#payment_history'] = [
-      '#type' => 'table',
-      '#header' => $header,
-      '#attributes' => [
-        'class' => ['payment-history'],
-      ],
-      '#rows' => $rows,
-      '#empty' => $this->t('No payments have been made.'),
-    ];
-
+    // Build upcoming invoice.
     $rows = [];
     $header = [$this->t('Date'), $this->t('Charge')];
 
@@ -279,6 +220,64 @@ class InvoicesController extends ControllerBase {
     ];
 
     $build['#billing_information_form'] = $this->formBuilder()->getForm('\Drupal\braintree_cashier\Form\InvoiceBillingInformationForm', $user);
+
+    // Create payment history.
+    /* @var \Braintree\ResourceCollection transactionSuccessfulCollection */
+    $this->transactionSuccessfulCollection = $this->braintreeApi->getGateway()->transaction()->search([
+      \Braintree_TransactionSearch::customerId()->is($braintree_customer->id),
+      \Braintree_TransactionSearch::status()->in($this->bcService->getTransactionCompletedStatuses()),
+    ]);
+
+    $rows = [];
+    $header = [$this->t('Date'), $this->t('Amount'), $this->t('Details')];
+
+    if (!empty($this->transactionSuccessfulCollection->getIds())) {
+      foreach ($this->transactionSuccessfulCollection as $transaction) {
+        // Show refunds as negative amounts.
+        $amount = $this->moneyParser->parse($transaction->amount, $this->config->get('currency_code'));
+
+        $details = [
+          '#theme' => 'item_list',
+          '#type' => 'ul',
+          '#items' => [
+            [
+              '#type' => 'link',
+              '#title' => $this->t('View'),
+              '#url' => Url::fromRoute('braintree_cashier.single_invoice_view', [
+                'user' => $user->id(),
+                'invoice' => $transaction->id,
+              ]),
+            ],
+            [
+              '#type' => 'link',
+              '#title' => $this->t('Download'),
+              '#url' => Url::fromRoute('braintree_cashier.single_invoice_download', [
+                'user' => $user->id(),
+                'invoice' => $transaction->id,
+              ]),
+            ],
+          ],
+
+        ];
+
+        $amount_prefix = $transaction->type == \Braintree_Transaction::SALE ? '' : '-';
+        $rows[] = [
+          $this->dateFormatter->format($transaction->createdAt->getTimestamp()),
+          $amount_prefix . $this->moneyFormatter->format($amount),
+          ['data' => $details],
+        ];
+      }
+    }
+    
+    $build['#payment_history'] = [
+      '#type' => 'table',
+      '#header' => $header,
+      '#attributes' => [
+        'class' => ['payment-history'],
+      ],
+      '#rows' => $rows,
+      '#empty' => $this->t('No payments have been made.'),
+    ];
 
     return $build;
   }
