@@ -125,4 +125,9 @@ interface BillingPlanInterface extends ContentEntityInterface, EntityChangedInte
    */
   public function getCallToAction();
 
+  /**
+   * Get whether this billing plan has a free trial.
+   */
+  public function hasFreeTrial();
+
 }

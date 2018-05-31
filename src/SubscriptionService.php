@@ -188,11 +188,11 @@ class SubscriptionService {
       $braintree_subscription = $this->asBraintreeSubscription($subscription);
 
       // Cancel now to avoid any more charge attempts.
-      $will_cancel_now = $braintree_subscription->status === \Braintree_Subscription::PAST_DUE;
+      $do_cancel_now = $braintree_subscription->status === \Braintree_Subscription::PAST_DUE;
       // Cancel free trials immediately. The billingPeriodEndDate is empty for
       // free trials.
-      $will_cancel_now = $will_cancel_now || empty($braintree_subscription->billingPeriodEndDate);
-      if ($will_cancel_now) {
+      $do_cancel_now = $do_cancel_now || empty($braintree_subscription->billingPeriodEndDate);
+      if ($do_cancel_now) {
         $this->cancelNow($subscription);
         return;
       }
@@ -468,6 +468,13 @@ class SubscriptionService {
       'planId' => $billing_plan->getBraintreePlanId(),
     ], $options);
 
+    if ($billing_plan->hasFreeTrial()) {
+      $payload['trialPeriod'] = !$user->get('had_free_trial')->value;
+    }
+
+    // Override the trialPeriod setting if the billing plan has free trials.
+
+
     if (!empty($coupon)) {
       $payload = $this->addCouponToPayload($coupon, $payload);
     }
@@ -479,6 +486,11 @@ class SubscriptionService {
       $event = new BraintreeErrorEvent($user, $result->message, $result);
       $this->eventDispatcher->dispatch(BraintreeCashierEvents::BRAINTREE_ERROR, $event);
       return FALSE;
+    }
+
+    if ($billing_plan->hasFreeTrial() && !$user->get('had_free_trial')) {
+      $user->set('had_free_trial', TRUE);
+      $user->save();
     }
 
     return $result->subscription;

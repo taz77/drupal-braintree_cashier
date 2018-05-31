@@ -158,6 +158,13 @@ class BillingPlan extends ContentEntityBase implements BillingPlanInterface {
   /**
    * {@inheritdoc}
    */
+  public function hasFreeTrial() {
+    return $this->get('has_free_trial')->value;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function getSubscriptionType() {
     return $this->get('subscription_type')->value;
   }
@@ -315,6 +322,14 @@ class BillingPlan extends ContentEntityBase implements BillingPlanInterface {
       ->setLabel(t('Is available for purchase'))
       ->setDescription(t('A boolean indicating whether the Billing plan is available for purchase.'))
       ->setDefaultValue(TRUE)
+      ->setDisplayOptions('form', [
+        'weight' => 10,
+      ]);
+
+    $fields['has_free_trial'] = BaseFieldDefinition::create('boolean')
+      ->setLabel(t('Has free trial'))
+      ->setDescription(t('A boolean indicating whether this Billing Plan has a free trial. Setting this prevents users from getting multiple free trials since it causes the Braintree Cashier module to override the Braintree Console settings based on the "Had free trial" boolean on the user entity. The Billing Plan in the Braintree Console needs to be properly configured for free trials.'))
+      ->setDefaultValue(FALSE)
       ->setDisplayOptions('form', [
         'weight' => 10,
       ]);
