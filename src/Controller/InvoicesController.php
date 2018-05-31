@@ -268,7 +268,7 @@ class InvoicesController extends ControllerBase {
         ];
       }
     }
-    
+
     $build['#payment_history'] = [
       '#type' => 'table',
       '#header' => $header,

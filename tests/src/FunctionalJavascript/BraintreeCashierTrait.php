@@ -71,6 +71,29 @@ trait BraintreeCashierTrait {
   }
 
   /**
+   * Creates the monthly billing plan with a free trial.
+   *
+   * @return \Drupal\braintree_cashier\Entity\BillingPlanInterface
+   *   The billing plan.
+   */
+  protected function createMonthlyFreeTrialBillingPlan() {
+    $billing_plan = BillingPlan::create([
+      'braintree_plan_id' => 'monthly_free_trial',
+      'name' => 'Monthly Free Trial',
+      'subscription_type' => SubscriptionInterface::PAID_INDIVIDUAL,
+      'is_available_for_purchase' => TRUE,
+      'environment' => 'sandbox',
+      'weight' => 0,
+      'description' => 'Monthly Free Trial plan for $9 / month',
+      'long_description' => 'A great plan, get it now.',
+      'call_to_action' => 'Start Free Trial',
+      'price' => '$9 / month',
+    ]);
+    $billing_plan->save();
+    return $billing_plan;
+  }
+
+  /**
    * Creates a billing plan which will result in a processor declined error.
    *
    * @return \Drupal\Core\Entity\EntityInterface|static
