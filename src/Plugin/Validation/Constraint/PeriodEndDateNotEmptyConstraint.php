@@ -21,7 +21,7 @@ class PeriodEndDateNotEmptyConstraint extends CompositeConstraintBase {
    * {@inheritdoc}
    */
   public function coversFields() {
-    return ['period_end_date', 'cancel_at_period_end'];
+    return ['period_end_date', 'cancel_at_period_end', 'subscription_type'];
   }
 
 }

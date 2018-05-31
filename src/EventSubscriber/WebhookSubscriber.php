@@ -110,17 +110,17 @@ class WebhookSubscriber implements EventSubscriberInterface {
         return;
       }
 
-      // Process an expired subscription.
-      if (in_array($event->getKind(), [
+      // Process an expired or canceled subscription.
+      if (\in_array($event->getKind(), [
         \Braintree_WebhookNotification::SUBSCRIPTION_CANCELED,
         \Braintree_WebhookNotification::SUBSCRIPTION_EXPIRED,
-      ])) {
+      ], TRUE)) {
         $subscription_entity->setStatus(SubscriptionInterface::CANCELED);
         $subscription_entity->save();
       }
 
       // Process a renewal. Update the period end date.
-      if ($event->getKind() == \Braintree_WebhookNotification::SUBSCRIPTION_CHARGED_SUCCESSFULLY) {
+      if ($event->getKind() === \Braintree_WebhookNotification::SUBSCRIPTION_CHARGED_SUCCESSFULLY) {
         // Note that an upgrade mid-billing-cycle would also trigger this
         // webhook.
         $subscription_entity->setPeriodEndDate($braintree_subscription->billingPeriodEndDate->getTimestamp());

@@ -11,6 +11,7 @@ use Drupal\braintree_cashier\Event\BraintreeErrorEvent;
 use Drupal\Component\EventDispatcher\ContainerAwareEventDispatcher;
 use Drupal\Core\Cache\Cache;
 use Drupal\Core\Config\ConfigFactory;
+use Drupal\Core\Datetime\DateFormatterInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Form\FormStateInterface;
@@ -115,6 +116,13 @@ class SubscriptionService {
   protected $eventDispatcher;
 
   /**
+   * The date formatter.
+   *
+   * @var \Drupal\Core\Datetime\DateFormatterInterface
+   */
+  protected $dateFormatter;
+
+  /**
    * Constructs a new SubscriptionService object.
    *
    * @param \Drupal\Core\Logger\LoggerChannel $logger_channel_braintree_cashier
@@ -135,10 +143,12 @@ class SubscriptionService {
    *   The module handler.
    * @param \Drupal\Component\EventDispatcher\ContainerAwareEventDispatcher $eventDispatcher
    *   The container aware event dispatcher.
+   * @param \Drupal\Core\Datetime\DateFormatterInterface
+   *   The date formatter service.
    *
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    */
-  public function __construct(LoggerChannel $logger_channel_braintree_cashier, EntityTypeManagerInterface $entity_type_manager, BraintreeApiService $braintree_api_braintree_api, BraintreeCashierService $bcService, ConfigFactory $configFactory, RequestStack $requestStack, BillableUser $billableUser, ModuleHandlerInterface $moduleHandler, ContainerAwareEventDispatcher $eventDispatcher) {
+  public function __construct(LoggerChannel $logger_channel_braintree_cashier, EntityTypeManagerInterface $entity_type_manager, BraintreeApiService $braintree_api_braintree_api, BraintreeCashierService $bcService, ConfigFactory $configFactory, RequestStack $requestStack, BillableUser $billableUser, ModuleHandlerInterface $moduleHandler, ContainerAwareEventDispatcher $eventDispatcher, DateFormatterInterface $dateFormatter) {
     $this->logger = $logger_channel_braintree_cashier;
     $this->subscriptionStorage = $entity_type_manager->getStorage('subscription');
     $this->braintreeApi = $braintree_api_braintree_api;
@@ -156,6 +166,7 @@ class SubscriptionService {
     $this->currencyCode = $this->config->get('currency_code');
 
     $this->eventDispatcher = $eventDispatcher;
+    $this->dateFormatter = $dateFormatter;
   }
 
   /**
@@ -699,6 +710,39 @@ class SubscriptionService {
       'amount' => $amount,
       'number_of_billing_cycles' => 1,
     ];
+  }
+
+  /**
+   * Gets the period end date of the current subscription.
+   *
+   * @param \Drupal\braintree_cashier\Entity\SubscriptionInterface $current_subscription
+   *   The current subscription entity.
+   *
+   * @return string
+   *   The 'html_date' formatted period end date.
+   */
+  public function getFormattedPeriodEndDate(SubscriptionInterface $current_subscription) {
+    $timestamp = '';
+    if (\in_array($current_subscription->getSubscriptionType(), Subscription::getSubscriptionTypesNeedBraintreeId(), TRUE)) {
+      $braintree_subscription = $this->braintreeApi->getGateway()->subscription()->find($current_subscription->getBraintreeSubscriptionId());
+      if (empty($braintree_subscription->billingPeriodEndDate)) {
+        // The subscription must be on a free trial.
+        $timestamp = $braintree_subscription->nextBillingDate->getTimestamp();
+      }
+      else {
+        $timestamp = $braintree_subscription->billingPeriodEndDate->getTimestamp();
+      }
+    }
+    if ($current_subscription->getSubscriptionType() == SubscriptionInterface::FREE) {
+      $timestamp = $current_subscription->getPeriodEndDate();
+    }
+    $data = [
+      'formatted_period_end_date' => $this->dateFormatter->format($timestamp, 'html_date'),
+      'timestamp' => $timestamp,
+      'subscription_entity' => $current_subscription,
+      ];
+    $this->moduleHandler->alter('braintree_cashier_formatted_period_end_date', $data);
+    return $data['formatted_period_end_date'];
   }
 
 }
