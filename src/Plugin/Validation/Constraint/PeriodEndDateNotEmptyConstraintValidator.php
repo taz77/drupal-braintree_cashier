@@ -55,7 +55,7 @@ class PeriodEndDateNotEmptyConstraintValidator extends ConstraintValidator imple
     /** @var \Drupal\braintree_cashier\Entity\SubscriptionInterface $entity */
     $will_cancel_at_period_end = $entity->willCancelAtPeriodEnd();
     $period_end_date_is_set = !empty($entity->getPeriodEndDate());
-    $is_free_type = $entity->getSubscriptionType() == SubscriptionInterface::FREE;
+    $is_free_type = $entity->getSubscriptionType() === SubscriptionInterface::FREE;
 
     if ($will_cancel_at_period_end && !$period_end_date_is_set && $is_free_type) {
       $this->context->buildViolation($constraint->message)

@@ -665,7 +665,6 @@ class SubscriptionService {
       ->setName($new_billing_plan->getName())
       ->setType($new_billing_plan->getSubscriptionType())
       ->setBillingPlan($new_billing_plan->id())
-      ->setPeriodEndDate($updated_braintree_subscription->nextBillingDate->getTimestamp())
       ->setRolesToAssign($new_billing_plan->getRolesToAssign())
       ->setRolesToRevoke($new_billing_plan->getRolesToRevoke());
 
@@ -733,7 +732,7 @@ class SubscriptionService {
         $timestamp = $braintree_subscription->billingPeriodEndDate->getTimestamp();
       }
     }
-    if ($current_subscription->getSubscriptionType() == SubscriptionInterface::FREE) {
+    if ($current_subscription->getSubscriptionType() === SubscriptionInterface::FREE) {
       $timestamp = $current_subscription->getPeriodEndDate();
     }
     $data = [
