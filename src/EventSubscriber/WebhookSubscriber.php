@@ -85,22 +85,14 @@ class WebhookSubscriber implements EventSubscriberInterface {
    * @throws \Drupal\Core\Entity\EntityStorageException
    */
   public function handleWebhook(BraintreeApiWebhookEvent $event) {
+    // Process an expired or canceled subscription.
     $subscription_webhooks = [
       \Braintree_WebhookNotification::SUBSCRIPTION_CANCELED,
       \Braintree_WebhookNotification::SUBSCRIPTION_EXPIRED,
-      \Braintree_WebhookNotification::SUBSCRIPTION_CHARGED_SUCCESSFULLY,
     ];
 
-    if (in_array($event->getKind(), $subscription_webhooks)) {
+    if (\in_array($event->getKind(), $subscription_webhooks, TRUE)) {
       $braintree_subscription = $event->getWebhookNotification()->subscription;
-      // Only process renewals. The local subscription entity might not have
-      // been created yet. Check if the currentBillingCycle property exists
-      // since test webhooks don't have that property.
-      // @see \Braintree\WebhookTesting::_subscriptionChargedSuccessfullySampleXml.
-      $is_first_billing_period = !empty($braintree_subscription->currentBillingCycle) && $braintree_subscription->currentBillingCycle < 2;
-      if ($event->getKind() == \Braintree_WebhookNotification::SUBSCRIPTION_CHARGED_SUCCESSFULLY && $is_first_billing_period) {
-        return;
-      }
       try {
         $subscription_entity = $this->subscriptionService->findSubscriptionEntity($braintree_subscription->id);
       }
@@ -110,22 +102,8 @@ class WebhookSubscriber implements EventSubscriberInterface {
         return;
       }
 
-      // Process an expired or canceled subscription.
-      if (\in_array($event->getKind(), [
-        \Braintree_WebhookNotification::SUBSCRIPTION_CANCELED,
-        \Braintree_WebhookNotification::SUBSCRIPTION_EXPIRED,
-      ], TRUE)) {
-        $subscription_entity->setStatus(SubscriptionInterface::CANCELED);
-        $subscription_entity->save();
-      }
-
-      // Process a renewal. Update the period end date.
-      if ($event->getKind() === \Braintree_WebhookNotification::SUBSCRIPTION_CHARGED_SUCCESSFULLY) {
-        // Note that an upgrade mid-billing-cycle would also trigger this
-        // webhook.
-        $subscription_entity->setPeriodEndDate($braintree_subscription->billingPeriodEndDate->getTimestamp());
-        $subscription_entity->save();
-      }
+      $subscription_entity->setStatus(SubscriptionInterface::CANCELED);
+      $subscription_entity->save();
     }
   }
 
