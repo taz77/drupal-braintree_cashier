@@ -186,8 +186,13 @@ class SubscriptionService {
 
     if ($this->isBraintreeManaged($subscription)) {
       $braintree_subscription = $this->asBraintreeSubscription($subscription);
-      if ($braintree_subscription->status == \Braintree_Subscription::PAST_DUE) {
-        // Cancel now to avoid any more charge attempts.
+
+      // Cancel now to avoid any more charge attempts.
+      $will_cancel_now = $braintree_subscription->status === \Braintree_Subscription::PAST_DUE;
+      // Cancel free trials immediately. The billingPeriodEndDate is empty for
+      // free trials.
+      $will_cancel_now = $will_cancel_now || empty($braintree_subscription->billingPeriodEndDate);
+      if ($will_cancel_now) {
         $this->cancelNow($subscription);
         return;
       }

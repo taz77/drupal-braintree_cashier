@@ -78,4 +78,16 @@ class FreeTrialTest extends JavascriptTestBase {
     $this->assertSession()->elementTextContains('css', '.upcoming-invoice', '$9.00');
     $this->assertSession()->elementTextContains('css', '.payment-history', 'No payments have been made.');
   }
+
+  /**
+   * Tests that canceling a free trial makes the subscription status canceled.
+   */
+  public function testImmediateCancel() {
+    $this->testFreeTrialSignup();
+    $this->drupalGet(Url::fromRoute('braintree_cashier.cancel_confirm', [
+      'user' => $this->account->id(),
+    ]));
+    $this->getSession()->getPage()->pressButton('Yes, I wish to cancel.');
+    $this->assertSession()->elementTextContains('css', '.current-subscription-label', 'None');
+  }
 }
