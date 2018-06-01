@@ -245,8 +245,8 @@ class BillableUser {
    * @param \Drupal\user\Entity\User $user
    *   The user entity.
    *
-   * @return \Braintree_PaymentMethod
-   *   The Braintree payment method object.
+   * @return \Braintree_PaymentMethod|bool
+   *   The Braintree payment method object, or FALSE if none found.
    *
    * @throws \Braintree\Exception\NotFound
    *   The Braintree not found exception.
@@ -258,6 +258,7 @@ class BillableUser {
         return $paymentMethod;
       }
     }
+    return FALSE;
   }
 
   /**

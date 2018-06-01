@@ -8,6 +8,7 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Session\AccountInterface;
+use Drupal\Core\Url;
 use Drupal\user\Entity\User;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\braintree_api\BraintreeApiService;
@@ -89,16 +90,36 @@ class PaymentMethodForm extends FormBase {
 
     $form['dropin_ui'] = $this->billableUser->getDropinUiFormElement($user);
 
-    $form['submit'] = [
-      '#type' => 'submit',
-      '#attributes' => [
-        'id' => 'submit-button',
-        'class' => [
-          'btn-success'
-        ]
+    $form['actions'] = [
+      '#type' => 'actions',
+      '#button_type' => 'primary',
+      'submit' => [
+        '#type' => 'submit',
+        '#attributes' => [
+          'id' => 'submit-button',
+          'class' => [
+            'btn-success'
+          ]
+        ],
+        '#value' => empty($this->billableUser->getPaymentMethod($user)) ? $this->t('Add payment method') : $this->t('Replace payment method'),
       ],
-      '#value' => empty($this->billableUser->getBraintreeCustomerId($user)) ? $this->t('Add payment method') : $this->t('Replace payment method'),
     ];
+
+    if (!empty($this->billableUser->getPaymentMethod($user))) {
+      $form['actions']['remove'] = [
+        '#type' => 'link',
+        '#title' => $this->t('Remove payment method'),
+        '#attributes' => [
+          'class' => [
+            'btn',
+            'btn-danger',
+          ],
+        ],
+        '#url' => Url::fromRoute('braintree_cashier.remove_payment_method_confirm', [
+          'user' => $user->id(),
+        ]),
+      ];
+    }
 
     $form['payment_method_nonce'] = [
       '#type' => 'hidden',

@@ -73,6 +73,18 @@ braintree_cashier.cancel_confirm:
       user:
         type: entity:user
 
+braintree_cashier.remove_payment_method_confirm:
+  path: '/user/{user}/subscription/payment-method/confirm-removal'
+  defaults:
+    _form: '\Drupal\braintree_cashier\Form\RemovePaymentMethodConfirm'
+    _title: 'Confirm removal of payment method'
+  requirements:
+    _custom_access: '\Drupal\braintree_cashier\Controller\MySubscriptionController::accessRoute'
+  options:
+    parameters:
+      user:
+        type: entity:user
+
 braintree_cashier.update_confirm:
   path: '/user/{user}/subscription/update/confirm/{billing_plan}/{coupon_code}'
   defaults:
