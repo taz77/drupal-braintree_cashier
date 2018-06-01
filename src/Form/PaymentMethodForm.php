@@ -101,11 +101,11 @@ class PaymentMethodForm extends FormBase {
             'btn-success'
           ]
         ],
-        '#value' => empty($this->billableUser->getPaymentMethod($user)) ? $this->t('Add payment method') : $this->t('Replace payment method'),
       ],
     ];
 
-    if (!empty($this->billableUser->getPaymentMethod($user))) {
+    if ($this->billableUser->getBraintreeCustomerId($user) && $this->billableUser->getPaymentMethod($user)) {
+      $form['actions']['submit']['#value'] = $this->t('Replace payment method');
       $form['actions']['remove'] = [
         '#type' => 'link',
         '#title' => $this->t('Remove payment method'),
@@ -119,6 +119,9 @@ class PaymentMethodForm extends FormBase {
           'user' => $user->id(),
         ]),
       ];
+    }
+    else {
+      $form['actions']['submit']['#value'] = $this->t('Add payment method');
     }
 
     $form['payment_method_nonce'] = [
