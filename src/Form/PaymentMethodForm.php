@@ -106,19 +106,6 @@ class PaymentMethodForm extends FormBase {
 
     if ($this->billableUser->getBraintreeCustomerId($user) && $this->billableUser->getPaymentMethod($user)) {
       $form['actions']['submit']['#value'] = $this->t('Replace payment method');
-      $form['actions']['remove'] = [
-        '#type' => 'link',
-        '#title' => $this->t('Remove payment method'),
-        '#attributes' => [
-          'class' => [
-            'btn',
-            'btn-danger',
-          ],
-        ],
-        '#url' => Url::fromRoute('braintree_cashier.remove_payment_method_confirm', [
-          'user' => $user->id(),
-        ]),
-      ];
     }
     else {
       $form['actions']['submit']['#value'] = $this->t('Add payment method');
