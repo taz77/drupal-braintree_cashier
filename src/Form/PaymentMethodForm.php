@@ -93,8 +93,11 @@ class PaymentMethodForm extends FormBase {
       '#type' => 'submit',
       '#attributes' => [
         'id' => 'submit-button',
+        'class' => [
+          'btn-success'
+        ]
       ],
-      '#value' => $this->t('Update payment method'),
+      '#value' => empty($this->billableUser->getBraintreeCustomerId($user)) ? $this->t('Add payment method') : $this->t('Replace payment method'),
     ];
 
     $form['payment_method_nonce'] = [
