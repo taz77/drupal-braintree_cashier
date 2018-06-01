@@ -421,14 +421,6 @@ class Subscription extends ContentEntityBase implements SubscriptionInterface {
       ])
       ->setDefaultValue(FALSE);
 
-    $fields['sent_free_trial_expiring_notification'] = BaseFieldDefinition::create('boolean')
-      ->setLabel(t('Sent free trial expiring notification'))
-      ->setDescription(t('A boolean indicating whether an email notification has already been sent about the expiration of this subscription\'s free trial'))
-      ->setDisplayOptions('form', [
-        'weight' => 0,
-      ])
-      ->setDefaultValue(FALSE);
-
     // The description is set in \Drupal\braintree_cashier\Form\SubscriptionForm::setPeriodEndDateDescription.
     // @see https://www.drupal.org/node/2508866.
     $fields['period_end_date'] = BaseFieldDefinition::create('timestamp')
@@ -537,21 +529,6 @@ class Subscription extends ContentEntityBase implements SubscriptionInterface {
     $types[] = self::PAID_INDIVIDUAL;
     \Drupal::moduleHandler()->alter('braintree_cashier_subscription_types_need_braintree_id', $types);
     return $types;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function setSentFreeTrialExpiringNotification($sent) {
-    $this->set('sent_free_trial_expiring_notification', $sent);
-    return $this;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function sentFreeTrialExpiringNotification() {
-    return $this->get('sent_free_trial_expiring_notification')->value;
   }
 
 }

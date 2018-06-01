@@ -6,6 +6,7 @@ use Drupal\braintree_api\BraintreeApiService;
 use Drupal\braintree_cashier\BraintreeCashierService;
 use Drupal\braintree_cashier\SubscriptionService;
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\KeyValueStore\KeyValueFactoryInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Queue\QueueFactory;
 use Drupal\Core\Queue\QueueWorkerBase;
@@ -74,15 +75,23 @@ class RetrieveExpiringFreeTrials extends QueueWorkerBase implements ContainerFac
   protected $bcService;
 
   /**
+   * The subscriptions to notify store
+   *
+   * @var \Drupal\Core\KeyValueStore\KeyValueStoreExpirableInterface
+   */
+  protected $freeTrialNotificationsStore;
+
+  /**
    * Class constructor.
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, BraintreeApiService $braintreeApi, ConfigFactoryInterface $configFactory, QueueFactory $queueFactory, SubscriptionService $subscriptionService, BraintreeCashierService $bcService) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, BraintreeApiService $braintreeApi, ConfigFactoryInterface $configFactory, QueueFactory $queueFactory, SubscriptionService $subscriptionService, BraintreeCashierService $bcService, KeyValueFactoryInterface $keyValueFactory) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->braintreeApi = $braintreeApi;
     $this->bcConfig = $configFactory->get('braintree_cashier.settings');
     $this->queueFactory = $queueFactory;
     $this->subscriptionService = $subscriptionService;
     $this->bcService = $bcService;
+    $this->freeTrialNotificationsStore = $keyValueFactory->get('queued_free_trial_notifications');
 
     // Setup Money.
     $currencies = new ISOCurrencies();
@@ -103,7 +112,8 @@ class RetrieveExpiringFreeTrials extends QueueWorkerBase implements ContainerFac
       $container->get('config.factory'),
       $container->get('queue'),
       $container->get('braintree_cashier.subscription_service'),
-      $container->get('braintree_cashier.braintree_cashier_service')
+      $container->get('braintree_cashier.braintree_cashier_service'),
+      $container->get('keyvalue.expirable')
     );
   }
 
@@ -126,10 +136,13 @@ class RetrieveExpiringFreeTrials extends QueueWorkerBase implements ContainerFac
     ]);
 
     $items = [];
+
+    // Using the key-value store to record queued free trial notifications was
+    // inspired by \Drupal\update\UpdateProcessor::createFetchTask.
+    $queuedFreeTrialNotifications = $this->freeTrialNotificationsStore->getAll();
     foreach ($braintree_subscriptions as $braintree_subscription) {
       $subscription_entity = $this->subscriptionService->findSubscriptionEntity($braintree_subscription->id);
-//      if (!$subscription_entity->sentFreeTrialExpiringNotification()) {
-      if (TRUE) {
+      if (empty($queuedFreeTrialNotifications[$subscription_entity->id()])) {
         $currency_code = $this->bcConfig->get('currency_code');
         $amount = $this->moneyParser->parse($braintree_subscription->nextBillingPeriodAmount, $currency_code);
         $items[] = [
@@ -138,12 +151,10 @@ class RetrieveExpiringFreeTrials extends QueueWorkerBase implements ContainerFac
           'currency_code' => $currency_code,
           'next_billing_date' => $braintree_subscription->nextBillingDate->getTimestamp(),
         ];
-
-        // Record sending the notification here since we don't want this
-        // subscription to accidentally be added to the queue again before
-        // the notification is actually sent.
-        $subscription_entity->setSentFreeTrialExpiringNotification(TRUE);
-        $subscription_entity->save();
+        // Surely the free trial expiry notification will be sent within 30 days.
+        $duration_in_key_value_store = 3600 * 24 * 30;
+        // Expire the entry in the key-value store to avoid clogging the DB.
+        $this->freeTrialNotificationsStore->setWithExpireIfNotExists($subscription_entity->id(), 'uid: ' . $subscription_entity->getSubscribedUserId(), $duration_in_key_value_store);
       }
     }
 
