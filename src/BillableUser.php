@@ -9,6 +9,8 @@ use Drupal\braintree_cashier\Event\BraintreeCustomerCreatedEvent;
 use Drupal\braintree_cashier\Event\BraintreeErrorEvent;
 use Drupal\braintree_cashier\Event\PaymentMethodUpdatedEvent;
 use Drupal\Component\EventDispatcher\ContainerAwareEventDispatcher;
+use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
@@ -59,6 +61,14 @@ class BillableUser {
   protected $braintreeApiService;
 
   /**
+   * Braintree cashier settings.
+   *
+   * @var \Drupal\Core\Config\ImmutableConfig
+   */
+  protected $bcConfig;
+
+
+  /**
    * BillableUser constructor.
    *
    * @param \Drupal\Core\Logger\LoggerChannelInterface $logger
@@ -74,12 +84,13 @@ class BillableUser {
    *
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    */
-  public function __construct(LoggerChannelInterface $logger, EntityTypeManagerInterface $entity_type_manager, BraintreeCashierService $bcService, ContainerAwareEventDispatcher $eventDispatcher, BraintreeApiService $braintreeApiService) {
+  public function __construct(LoggerChannelInterface $logger, EntityTypeManagerInterface $entity_type_manager, BraintreeCashierService $bcService, ContainerAwareEventDispatcher $eventDispatcher, BraintreeApiService $braintreeApiService, ConfigFactoryInterface $configFactory) {
     $this->logger = $logger;
     $this->subscriptionStorage = $entity_type_manager->getStorage('subscription');
     $this->bcService = $bcService;
     $this->eventDispatcher = $eventDispatcher;
     $this->braintreeApiService = $braintreeApiService;
+    $this->bcConfig = $configFactory->get('braintree_cashier.settings');
   }
 
   /**
@@ -436,6 +447,34 @@ class BillableUser {
       $this->logger->error('Exception in generateClientToken(): ' . $e->getMessage());
       drupal_set_message($this->t('Our payment processor reported the following error: %error. Please try reloading the page.', ['%error' => $e->getMessage()]), 'error');
     }
+  }
+
+
+  /**
+   * Gets the form API array for the Braintree Drop-in UI element.
+   *
+   * This function permits updating the version of the drop-in UI in only one
+   * place since the drop-in UI is used in multiple forms.
+   *
+   * @param \Drupal\Core\Entity\EntityInterface $user
+   *   The user account for which to generate the Drop-in UI.
+   *
+   * @return array
+   *   The Drop-in UI form element.
+   */
+  public function getDropinUiFormElement(EntityInterface $user = NULL) {
+    $element = [
+      '#type' => 'html_tag',
+      '#tag' => 'script',
+      '#attributes' => [
+        'src' => 'https://js.braintreegateway.com/web/dropin/1.11.0/js/dropin.min.js',
+        'data-braintree-dropin-authorization' => $this->generateClientToken($user),
+      ],
+    ];
+    if ($this->bcConfig->get('accept_paypal')) {
+      $element['#attributes']['data-paypal.flow'] = 'vault';
+    }
+    return $element;
   }
 
 }

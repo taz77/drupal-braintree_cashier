@@ -87,16 +87,9 @@ class PaymentMethodForm extends FormBase {
       '#value' => $user->id(),
     ];
 
-    $form['dropin_ui'] = [
-      '#type' => 'html_tag',
-      '#tag' => 'script',
-      '#attributes' => [
-        'src' => 'https://js.braintreegateway.com/web/dropin/1.10.0/js/dropin.min.js',
-        'data-braintree-dropin-authorization' => $this->billableUser->generateClientToken($user),
-        'data-paypal.flow' => 'vault',
-      ],
-      '#suffix' => '<p>' . $this->t('To update an existing card, please select "Choose another way to pay" and enter the card details again.') . '</p>',
-    ];
+    $element = $this->billableUser->getDropinUiFormElement($user);
+    $element['#suffix'] = '<p>' . $this->t('To update an existing card, please select "Choose another way to pay" and enter the card details again.') . '</p>';
+    $form['dropin_ui'] = $element;
 
     $form['submit'] = [
       '#type' => 'submit',

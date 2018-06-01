@@ -149,15 +149,8 @@ class SignupForm extends PlanSelectFormBase {
       $user = $this->userStorage->load($this->currentUser->id());
     }
 
-    $form['dropin_ui'] = [
-      '#type' => 'html_tag',
-      '#tag' => 'script',
-      '#attributes' => [
-        'src' => 'https://js.braintreegateway.com/web/dropin/1.10.0/js/dropin.min.js',
-        'data-braintree-dropin-authorization' => $this->billableUser->generateClientToken($user),
-        'data-paypal.flow' => 'vault',
-      ],
-    ];
+
+    $form['dropin_ui'] = $this->billableUser->getDropinUiFormElement($user);
 
     $form['submit'] = [
       '#type' => 'submit',

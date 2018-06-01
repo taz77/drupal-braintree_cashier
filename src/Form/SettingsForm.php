@@ -78,6 +78,12 @@ class SettingsForm extends ConfigFormBase {
       '#default_value' => $config->get('prevent_duplicate_payment_methods'),
     ];
 
+    $form['accept_paypal'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Accept PayPal as a payment method'),
+      '#default_value' => $config->get('accept_paypal'),
+    ];
+
     $form['generic_declined_message'] = [
       '#type' => 'text_format',
       '#format' => empty($config->get('generic_declined_message')['format']) ? NULL : $config->get('generic_declined_message')['format'],
@@ -128,6 +134,7 @@ class SettingsForm extends ConfigFormBase {
       'force_locale_en',
       'free_trial_notification_period',
       'prevent_duplicate_payment_methods',
+      'accept_paypal',
     ];
     foreach ($keys as $key) {
       if (isset($values[$key])) {
