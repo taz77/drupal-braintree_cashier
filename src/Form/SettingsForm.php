@@ -56,6 +56,15 @@ class SettingsForm extends ConfigFormBase {
       '#default_value' => $config->get('force_locale_en'),
     ];
 
+    $form['free_trial_notification_period'] = [
+      '#type' => 'number',
+      '#min' => '0',
+      '#title' => $this->t('Free trial notification period'),
+      '#field_suffix' => $this->t(' days'),
+      '#description' => $this->t('The number of days in advance to send an email notification to a user when their free trial is about to expire. Enter zero for no notification.'),
+      '#default_value' => $config->get('free_trial_notification_period'),
+    ];
+
     $form['generic_declined_message'] = [
       '#type' => 'text_format',
       '#format' => empty($config->get('generic_declined_message')['format']) ? NULL : $config->get('generic_declined_message')['format'],
@@ -104,6 +113,7 @@ class SettingsForm extends ConfigFormBase {
       'currency_code',
       'invoice_business_information',
       'force_locale_en',
+      'free_trial_notification_period',
     ];
     foreach ($keys as $key) {
       if (isset($values[$key])) {

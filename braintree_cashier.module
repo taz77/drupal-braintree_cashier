@@ -185,6 +185,15 @@ function braintree_cashier_cron() {
     $subscription->setStatus(SubscriptionInterface::CANCELED);
     $subscription->save();
   }
+
+  // Periodically retrieve expiring free trials for notification.
+  $last_check = \Drupal::state()->get('braintree_cashier.last_free_trial_expiring_check', 0);
+  $free_trial_notification_period = \Drupal::config('braintree_cashier.settings')->get('free_trial_notification_period');
+  if ($free_trial_notification_period > 0 && \Drupal::time()->getRequestTime() > strtotime('+8 hours', $last_check)) {
+    $queue = \Drupal::queue('retrieve_expiring_free_trials');
+    $queue->createItem(\Drupal::time()->getRequestTime());
+  }
+  \Drupal::state()->set('braintree_cashier.last_free_trial_expiring_check', \Drupal::time()->getRequestTime());
 }
 
 /**

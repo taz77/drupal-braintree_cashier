@@ -1,2 +1,3 @@
 currency_code: 'USD'
 force_locale_en: 0
+free_trial_notification_period: '0'

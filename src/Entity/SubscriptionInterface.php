@@ -270,4 +270,23 @@ interface SubscriptionInterface extends ContentEntityInterface, EntityChangedInt
    */
   public function setType($type);
 
+  /**
+   * Set sent free trial expiring notification
+   *
+   * @param boolean $sent
+   *   A boolean indicating whether a notification has been sent.
+   *
+   * @return \Drupal\braintree_cashier\Entity\SubscriptionInterface
+   *   The subscription entity.
+   */
+  public function setSentFreeTrialExpiringNotification($sent);
+
+  /**
+   * Determines whether free trial expiry notification has already been sent.
+   *
+   * @return boolean
+   *   A boolean indicating whether notification has already been sent.
+   */
+  public function sentFreeTrialExpiringNotification();
+
 }
