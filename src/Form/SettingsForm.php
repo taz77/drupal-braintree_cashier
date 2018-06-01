@@ -59,6 +59,10 @@ class SettingsForm extends ConfigFormBase {
     $form['free_trial_notification_period'] = [
       '#type' => 'number',
       '#min' => '0',
+      // Max is needed to avoid sending free trial expiration notifications
+      // more than once, due to the key-value expiration in
+      // \Drupal\braintree_cashier\Plugin\QueueWorker\RetrieveExpiringFreeTrials::processItem.
+      '#max' => '28',
       '#title' => $this->t('Free trial notification period'),
       '#field_suffix' => $this->t(' days'),
       '#description' => $this->t('The number of days in advance to send an email notification to a user when their free trial is about to expire. Enter zero for no notification. If you\'re using free trials, this should be sent to a non-zero value to avoid <a href="@trial_docs_url">negative option billing</a>', [
