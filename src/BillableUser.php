@@ -119,6 +119,8 @@ class BillableUser {
       'paymentMethodNonce' => $nonce,
       'options' => [
         'makeDefault' => TRUE,
+        'failOnDuplicatePaymentMethod' => !empty($this->bcConfig->get('prevent_duplicate_payment_methods')),
+        'verifyCard' => TRUE,
       ],
     ];
     $result = $this->braintreeApiService->getGateway()->paymentMethod()->create($payload);
@@ -285,7 +287,7 @@ class BillableUser {
       'paymentMethodNonce' => $nonce,
       'creditCard' => [
         'options' => [
-          'verifyCard' => TRUE,
+          'failOnDuplicatePaymentMethod' => !empty($this->bcConfig->get('prevent_duplicate_payment_methods')),
         ],
       ],
     ]);
@@ -302,12 +304,15 @@ class BillableUser {
         if ($credit_card_verification->status == 'gateway_rejected') {
           $this->bcService->handleGatewayRejected($credit_card_verification->gatewayRejectionReason);
         }
+        return FALSE;
       }
-      else {
-        drupal_set_message($this->t('Card declined: @message', ['@message' => $result->message]));
-      }
+      drupal_set_message($this->t('Card declined: @message', ['@message' => $result->message]), 'error');
       return FALSE;
     }
+
+    // Check for duplicate PayPal account.
+//    $this->braintreeApiService->getGateway()->paymentMethod()->find();
+
     $user->set('braintree_customer_id', $result->customer->id);
     $user->save();
 
@@ -377,19 +382,18 @@ class BillableUser {
   public function generateClientToken(User $user = NULL, $version = 3) {
     $version = $this->sanitizeVersion($version);
     try {
-      if (!empty($user) && !empty($this->getBraintreeCustomerId($user))) {
-        return $this->braintreeApiService->getGateway()->clientToken()->generate([
-          'customerId' => $this->getBraintreeCustomerId($user),
-          'version' => $version,
-          'options' => [
-            'verifyCard' => TRUE,
-            'makeDefault' => TRUE,
+      $payload = [
+        'version' => $version,
+        'options' => [
+          'verifyCard' => TRUE,
+          'failOnDuplicatePaymentMethod' => !empty($this->bcConfig->get('prevent_duplicate_payment_methods')),
           ],
-        ]);
+        ];
+      if (!empty($user) && !empty($this->getBraintreeCustomerId($user))) {
+        $payload['customerId'] = $this->getBraintreeCustomerId($user);
+        $payload['options']['makeDefault'] = TRUE;
       }
-      else {
-        return $this->generateAnonymousClientToken($version);
-      }
+      return $this->braintreeApiService->getGateway()->clientToken()->generate($payload);
     }
     catch (\InvalidArgumentException $e) {
       // The customer id provided probably doesn't exist with Braintree.
@@ -421,34 +425,6 @@ class BillableUser {
     }
     return $version;
   }
-
-  /**
-   * Generates an anonymous Braintree client token for the Drop-in UI.
-   *
-   * @param int $version
-   *   The Braintree API version.
-   *
-   * @see https://developers.braintreepayments.com/reference/request/client-token/generate/php#version
-   *   For documentation about the version.
-   *
-   * @return string
-   *   The Braintree Client Token.
-   */
-  public function generateAnonymousClientToken($version = 3) {
-    $version = $this->sanitizeVersion($version);
-    try {
-      return $this->braintreeApiService->getGateway()->clientToken()->generate([
-        'version' => $version,
-      ]);
-    }
-    catch (\Exception $e) {
-      // There was probably an API error of some kind. Either API credentials
-      // are not configured properly, or there's an issue with Braintree.
-      $this->logger->error('Exception in generateClientToken(): ' . $e->getMessage());
-      drupal_set_message($this->t('Our payment processor reported the following error: %error. Please try reloading the page.', ['%error' => $e->getMessage()]), 'error');
-    }
-  }
-
 
   /**
    * Gets the form API array for the Braintree Drop-in UI element.

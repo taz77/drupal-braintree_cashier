@@ -135,6 +135,7 @@ class SettingsForm extends ConfigFormBase {
       'free_trial_notification_period',
       'prevent_duplicate_payment_methods',
       'accept_paypal',
+      'duplicate_payment_method_message',
     ];
     foreach ($keys as $key) {
       if (isset($values[$key])) {
