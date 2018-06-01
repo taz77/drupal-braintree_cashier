@@ -71,6 +71,13 @@ class SettingsForm extends ConfigFormBase {
       '#default_value' => $config->get('free_trial_notification_period'),
     ];
 
+    $form['prevent_duplicate_payment_methods'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Prevent duplicate payment methods'),
+      '#description' => $this->t('Different accounts may not use the same credit card or PayPal account as a payment method. This attempts to reduce the frequency of multiple free trials by a single individual.'),
+      '#default_value' => $config->get('prevent_duplicate_payment_methods'),
+    ];
+
     $form['generic_declined_message'] = [
       '#type' => 'text_format',
       '#format' => empty($config->get('generic_declined_message')['format']) ? NULL : $config->get('generic_declined_message')['format'],
@@ -120,6 +127,7 @@ class SettingsForm extends ConfigFormBase {
       'invoice_business_information',
       'force_locale_en',
       'free_trial_notification_period',
+      'prevent_duplicate_payment_methods',
     ];
     foreach ($keys as $key) {
       if (isset($values[$key])) {
