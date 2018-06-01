@@ -110,18 +110,9 @@ class BillableUser {
 
     $customer = $this->asBraintreeCustomer($user);
 
-    // verifyCard is not an option here since the Drop-in UI is already
-    // configured to verify the card, and we don't want users to see two
-    // authorizations on their credit card accounts.
-    // @see ::generateClientToken
     $payload = [
       'customerId' => $customer->id,
       'paymentMethodNonce' => $nonce,
-      'options' => [
-        'makeDefault' => TRUE,
-        'failOnDuplicatePaymentMethod' => !empty($this->bcConfig->get('prevent_duplicate_payment_methods')),
-        'verifyCard' => TRUE,
-      ],
     ];
     $result = $this->braintreeApiService->getGateway()->paymentMethod()->create($payload);
 
@@ -306,6 +297,13 @@ class BillableUser {
         }
         return FALSE;
       }
+      foreach ($result->errors->deepAll() as $error) {
+        // @see https://developers.braintreepayments.com/reference/general/validation-errors/all/php#code-81724
+        if ($error->code = '81724') {
+          drupal_set_message($this->bcConfig->get('duplicate_payment_method_message'), 'error');
+          return FALSE;
+        }
+      }
       drupal_set_message($this->t('Card declined: @message', ['@message' => $result->message]), 'error');
       return FALSE;
     }
@@ -384,14 +382,13 @@ class BillableUser {
     try {
       $payload = [
         'version' => $version,
-        'options' => [
-          'verifyCard' => TRUE,
-          'failOnDuplicatePaymentMethod' => !empty($this->bcConfig->get('prevent_duplicate_payment_methods')),
-          ],
         ];
       if (!empty($user) && !empty($this->getBraintreeCustomerId($user))) {
         $payload['customerId'] = $this->getBraintreeCustomerId($user);
-        $payload['options']['makeDefault'] = TRUE;
+        $payload['options'] = [
+          'makeDefault' => TRUE,
+          'failOnDuplicatePaymentMethod' => !empty($this->bcConfig->get('prevent_duplicate_payment_methods')),
+        ];
       }
       return $this->braintreeApiService->getGateway()->clientToken()->generate($payload);
     }

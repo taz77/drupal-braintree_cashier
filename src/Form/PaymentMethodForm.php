@@ -87,9 +87,7 @@ class PaymentMethodForm extends FormBase {
       '#value' => $user->id(),
     ];
 
-    $element = $this->billableUser->getDropinUiFormElement($user);
-    $element['#suffix'] = '<p>' . $this->t('To update an existing card, please select "Choose another way to pay" and enter the card details again.') . '</p>';
-    $form['dropin_ui'] = $element;
+    $form['dropin_ui'] = $this->billableUser->getDropinUiFormElement($user);
 
     $form['submit'] = [
       '#type' => 'submit',

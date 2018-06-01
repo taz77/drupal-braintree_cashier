@@ -84,6 +84,13 @@ class SettingsForm extends ConfigFormBase {
       '#default_value' => $config->get('accept_paypal'),
     ];
 
+    $form['duplicate_payment_method_message'] = [
+      '#type' => 'textarea',
+      '#title' => $this->t('Duplicate payment method error message'),
+      '#description' => $this->t('Presented to users when they attempt to use a credit card or PayPal account already in use by another user.'),
+      '#default_value' => $config->get('duplicate_payment_method_message'),
+    ];
+
     $form['generic_declined_message'] = [
       '#type' => 'text_format',
       '#format' => empty($config->get('generic_declined_message')['format']) ? NULL : $config->get('generic_declined_message')['format'],
