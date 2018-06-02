@@ -104,8 +104,23 @@ class PaymentMethodForm extends FormBase {
       ],
     ];
 
-    if ($this->billableUser->getBraintreeCustomerId($user) && $this->billableUser->getPaymentMethod($user)) {
+    if ($this->billableUser->getBraintreeCustomerId($user) && $payment_method = $this->billableUser->getPaymentMethod($user)) {
       $form['actions']['submit']['#value'] = $this->t('Replace payment method');
+      if ($payment_method instanceof \Braintree_CreditCard) {
+        $form['actions']['update_expiry'] = [
+          '#type' => 'link',
+          '#title' => $this->t('Update credit card expiry'),
+          '#url' => Url::fromRoute('braintree_cashier.update_credit_card_expiry', [
+            'user' => $user->id(),
+          ]),
+          '#attributes' => [
+            'class' => [
+              'btn',
+              'btn-info',
+            ],
+          ],
+        ];
+      }
     }
     else {
       $form['actions']['submit']['#value'] = $this->t('Add payment method');
