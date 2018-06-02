@@ -2,6 +2,7 @@
 
 namespace Drupal\braintree_cashier;
 
+use Braintree\PaymentMethod;
 use Drupal\braintree_api\BraintreeApiService;
 use Drupal\braintree_cashier\Entity\SubscriptionInterface;
 use Drupal\braintree_cashier\Event\BraintreeCashierEvents;
@@ -33,11 +34,18 @@ class BillableUser {
   protected $logger;
 
   /**
-   * The entity storage.
+   * The subscription entity storage.
    *
    * @var \Drupal\Core\Entity\EntityStorageInterface
    */
   protected $subscriptionStorage;
+
+  /**
+   * The user entity storage.
+   *
+   * @var \Drupal\Core\Entity\EntityStorageInterface
+   */
+  protected $userStorage;
 
   /**
    * The braintree cashier service.
@@ -87,6 +95,7 @@ class BillableUser {
   public function __construct(LoggerChannelInterface $logger, EntityTypeManagerInterface $entity_type_manager, BraintreeCashierService $bcService, ContainerAwareEventDispatcher $eventDispatcher, BraintreeApiService $braintreeApiService, ConfigFactoryInterface $configFactory) {
     $this->logger = $logger;
     $this->subscriptionStorage = $entity_type_manager->getStorage('subscription');
+    $this->userStorage = $entity_type_manager->getStorage('user');
     $this->bcService = $bcService;
     $this->eventDispatcher = $eventDispatcher;
     $this->braintreeApiService = $braintreeApiService;
@@ -130,8 +139,12 @@ class BillableUser {
         }
       }
       else {
-        drupal_set_message($this->t('Error: @message', ['@message' => $result->message]));
+        drupal_set_message($this->t('Error: @message', ['@message' => $result->message]), 'error');
       }
+      return FALSE;
+    }
+
+    if ($this->bcConfig->get('prevent_duplicate_payment_methods') && !$this->preventDuplicatePaymentMethods($user, $result->paymentMethod)) {
       return FALSE;
     }
 
@@ -277,11 +290,6 @@ class BillableUser {
       'firstName' => $user->getAccountName(),
       'email' => $user->getEmail(),
       'paymentMethodNonce' => $nonce,
-      'creditCard' => [
-        'options' => [
-          'failOnDuplicatePaymentMethod' => !empty($this->bcConfig->get('prevent_duplicate_payment_methods')),
-        ],
-      ],
     ]);
 
     if (!$result->success) {
@@ -309,8 +317,15 @@ class BillableUser {
       return FALSE;
     }
 
-    // Check for duplicate PayPal account.
-//    $this->braintreeApiService->getGateway()->paymentMethod()->find();
+    // Check for duplicate payment methods.
+    if ($this->bcConfig->get('prevent_duplicate_payment_methods')) {
+      foreach($result->customer->paymentMethods as $payment_method) {
+        if (!$this->preventDuplicatePaymentMethods($user, $payment_method)) {
+          $this->braintreeApiService->getGateway()->customer()->delete($result->customer->id);
+          return FALSE;
+        }
+      }
+    }
 
     $user->set('braintree_customer_id', $result->customer->id);
     $user->save();
@@ -384,11 +399,10 @@ class BillableUser {
       $payload = [
         'version' => $version,
         ];
-      if (!empty($user) && !empty($this->getBraintreeCustomerId($user))) {
+      if ($user !== NULL && !empty($this->getBraintreeCustomerId($user))) {
         $payload['customerId'] = $this->getBraintreeCustomerId($user);
         $payload['options'] = [
           'makeDefault' => TRUE,
-          'failOnDuplicatePaymentMethod' => !empty($this->bcConfig->get('prevent_duplicate_payment_methods')),
         ];
       }
       return $this->braintreeApiService->getGateway()->clientToken()->generate($payload);
@@ -449,6 +463,85 @@ class BillableUser {
       $element['#attributes']['data-paypal.flow'] = 'vault';
     }
     return $element;
+  }
+
+  /**
+   * Check whether a payment method is in use by a different account.
+   *
+   * @param \Drupal\user\Entity\User $user
+   *   The user account that wishes to own the payment method.
+   * @param mixed $payment_method
+   *   The payment method object.
+   *
+   * @return boolean
+   *   A boolean indicating whether another user account owns the method.
+   */
+  public function isDuplicatePaymentMethod(User $user, $payment_method) {
+    $query = $this->userStorage->getQuery();
+    if ($payment_method instanceof \Braintree_CreditCard) {
+      $identifier = $payment_method->uniqueNumberIdentifier;
+    }
+    if ($payment_method instanceof \Braintree_PayPalAccount) {
+      $identifier = $payment_method->email;
+    }
+    $query->condition('payment_method_identifier', $identifier);
+    $uids = $query->execute();
+    if (empty($uids) || (\count($uids) === 1 && \in_array($user->id(), $uids, TRUE))) {
+      // Either no user owns this payment method, or only the given user does.
+      return FALSE;
+    }
+    return TRUE;
+  }
+
+  /**
+   * Records the payment method identifier on the user entity.
+   *
+   * @param \Drupal\user\Entity\User $user
+   *   The user account that wishes to own the payment method.
+   * @param mixed $payment_method
+   *   The payment method object.
+   *
+   * @return boolean
+   *   A boolean indicating whether the identifier was successfully recorded.
+   */
+  public function recordPaymentMethodIdentifier(User $user, $payment_method) {
+    if ($payment_method instanceof \Braintree_CreditCard) {
+      $identifier = $payment_method->uniqueNumberIdentifier;
+    }
+    if ($payment_method instanceof \Braintree_PayPalAccount) {
+      $identifier = $payment_method->email;
+    }
+    if (empty($identifier)) {
+      return FALSE;
+    }
+    $user->set('payment_method_identifier', $identifier);
+    $user->save();
+    return TRUE;
+  }
+
+  /**
+   * Prevent duplicate payment methods.
+   *
+   * @param \Drupal\user\Entity\User $user
+   *   The user account that wishes to own the payment method.
+   * @param mixed $payment_method
+   *   The payment method object.
+   *
+   * @return boolean
+   *   A boolean indicating success with preventing duplicate payment methods.
+   */
+  public function preventDuplicatePaymentMethods(User $user, $payment_method) {
+    if ($this->isDuplicatePaymentMethod($user, $payment_method)) {
+      $this->braintreeApiService->getGateway()->paymentMethod()->delete($payment_method->token);
+      drupal_set_message($this->bcConfig->get('duplicate_payment_method_message'), 'error');
+      return FALSE;
+    }
+    if (!$this->recordPaymentMethodIdentifier($user, $payment_method)) {
+      $this->braintreeApiService->getGateway()->paymentMethod()->delete($payment_method->token);
+      drupal_set_message($this->t('There was a problem with your payment method. Please try again, or contact a site administrator'));
+      return FALSE;
+    }
+    return TRUE;
   }
 
 }

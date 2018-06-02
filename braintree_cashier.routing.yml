@@ -73,18 +73,6 @@ braintree_cashier.cancel_confirm:
       user:
         type: entity:user
 
-braintree_cashier.update_credit_card_expiry:
-  path: '/user/{user}/subscription/payment-method/update-expiry'
-  defaults:
-    _form: '\Drupal\braintree_cashier\Form\UpdateExpiryForm'
-    _title: 'Update credit card expiry'
-  requirements:
-    _custom_access: '\Drupal\braintree_cashier\Controller\MySubscriptionController::accessRoute'
-  options:
-    parameters:
-      user:
-        type: entity:user
-
 braintree_cashier.update_confirm:
   path: '/user/{user}/subscription/update/confirm/{billing_plan}/{coupon_code}'
   defaults:

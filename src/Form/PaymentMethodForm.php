@@ -104,23 +104,8 @@ class PaymentMethodForm extends FormBase {
       ],
     ];
 
-    if ($this->billableUser->getBraintreeCustomerId($user) && $payment_method = $this->billableUser->getPaymentMethod($user)) {
+    if ($this->billableUser->getBraintreeCustomerId($user) && !empty($this->billableUser->getPaymentMethod($user))) {
       $form['actions']['submit']['#value'] = $this->t('Replace payment method');
-      if ($payment_method instanceof \Braintree_CreditCard) {
-        $form['actions']['update_expiry'] = [
-          '#type' => 'link',
-          '#title' => $this->t('Update credit card expiry'),
-          '#url' => Url::fromRoute('braintree_cashier.update_credit_card_expiry', [
-            'user' => $user->id(),
-          ]),
-          '#attributes' => [
-            'class' => [
-              'btn',
-              'btn-info',
-            ],
-          ],
-        ];
-      }
     }
     else {
       $form['actions']['submit']['#value'] = $this->t('Add payment method');
@@ -164,13 +149,11 @@ class PaymentMethodForm extends FormBase {
       $result = $this->billableUser->updatePaymentMethod($user, $values['payment_method_nonce']);
     }
     if ($result) {
-      $message = $this->t('Your payment method has been updated successfully!');
-
+      drupal_set_message($this->t('Your payment method has been updated successfully!'));
     }
     else {
-      $message = $this->t('There was an error updating your payment method. Please try again.');
+      drupal_set_message($this->t('There was an error updating your payment method. Please try again.', 'error'));
     }
-    drupal_set_message($message);
   }
 
   /**
