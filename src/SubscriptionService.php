@@ -624,9 +624,8 @@ class SubscriptionService {
       'billing_plan' => $billing_plan->id(),
       'roles_to_assign' => $billing_plan->getRolesToAssign(),
       'roles_to_revoke' => $billing_plan->getRolesToRevoke(),
-      'period_end_date' => $braintree_subscription->nextBillingDate->getTimestamp(),
       'braintree_subscription_id' => $braintree_subscription->id,
-      'is_trialing' => $braintree_subscription->trialPeriod,
+      'is_trialing' => !empty($braintree_subscription->trialPeriod),
     ];
 
     $this->moduleHandler->alter('braintree_cashier_create_subscription_params', $params, $billing_plan, $form_state);

@@ -65,7 +65,7 @@ class SettingsForm extends ConfigFormBase {
       '#max' => '28',
       '#title' => $this->t('Free trial notification period'),
       '#field_suffix' => $this->t(' days'),
-      '#description' => $this->t('The number of days in advance to send an email notification to a user when their free trial is about to expire. Enter zero for no notification. If you\'re using free trials, this should be sent to a non-zero value to avoid <a href="@trial_docs_url">negative option billing</a>', [
+      '#description' => $this->t('The number of days in advance to send an email notification to a user when their free trial is about to expire. Enter zero for no notification. If you\'re using free trials, this should be set to a non-zero value to avoid <a href="@trial_docs_url">negative option billing</a>', [
         '@trial_docs_url' => 'https://articles.braintreepayments.com/guides/recurring-billing/trial-periods',
       ]),
       '#default_value' => $config->get('free_trial_notification_period'),
