@@ -88,6 +88,7 @@ trait BraintreeCashierTrait {
       'long_description' => 'A great plan, get it now.',
       'call_to_action' => 'Start Free Trial',
       'price' => '$9 / month',
+      'has_free_trial' => TRUE,
     ]);
     $billing_plan->save();
     return $billing_plan;

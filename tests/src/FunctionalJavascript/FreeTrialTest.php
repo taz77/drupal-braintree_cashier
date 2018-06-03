@@ -41,12 +41,19 @@ class FreeTrialTest extends JavascriptTestBase {
   protected $account;
 
   /**
+   * The Billing Plan entity.
+   *
+   * @var \Drupal\braintree_cashier\Entity\BillingPlanInterface
+   */
+  protected $freeTrialPlanEntity;
+
+  /**
    * {@inheritdoc}
    */
   protected function setUp() {
     parent::setUp();
     $this->setupBraintreeApi();
-    $this->createMonthlyFreeTrialBillingPlan();
+    $this->freeTrialPlanEntity = $this->createMonthlyFreeTrialBillingPlan();
 
     $this->account = $this->drupalCreateUser();
     $this->drupalLogin($this->account);
@@ -89,5 +96,27 @@ class FreeTrialTest extends JavascriptTestBase {
     ]));
     $this->getSession()->getPage()->pressButton('Yes, I wish to cancel.');
     $this->assertSession()->elementTextContains('css', '.current-subscription-label', 'None');
+  }
+
+  /**
+   * Tests that signing up for a second plan does not result in a free trial.
+   *
+   * The free trial setting in the Braintree Control panel is overridden by
+   * the 'had_free_trial' boolean on the user entity.
+   */
+  public function testNoSecondFreeTrial() {
+    $this->testImmediateCancel();
+    $this->drupalGet(Url::fromRoute('braintree_cashier.my_subscription', [
+      'user' => $this->account->id(),
+    ]));
+    $this->getSession()->getPage()->selectFieldOption('Choose a plan', $this->freeTrialPlanEntity->id());
+    $this->getSession()->getPage()->pressButton('Update plan');
+    $this->getSession()->getPage()->pressButton('Confirm');
+    $this->assertSession()->waitForElementVisible('css', '.messages-status', 30000);
+    $this->assertSession()->pageTextContains('Your subscription has been updated!');
+    $this->drupalGet(Url::fromRoute('braintree_cashier.invoices', [
+      'user' => $this->account->id(),
+    ]));
+    $this->assertSession()->elementTextContains('css', '.payment-history', '$9.00');
   }
 }
