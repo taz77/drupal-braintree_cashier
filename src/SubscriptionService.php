@@ -486,7 +486,7 @@ class SubscriptionService {
       return FALSE;
     }
 
-    if ($billing_plan->hasFreeTrial() && !$user->get('had_free_trial')) {
+    if ($billing_plan->hasFreeTrial() && !$user->get('had_free_trial')->value) {
       $user->set('had_free_trial', TRUE);
       $user->save();
     }
@@ -737,7 +737,7 @@ class SubscriptionService {
    */
   public function getFormattedPeriodEndDate(SubscriptionInterface $current_subscription) {
     $timestamp = '';
-    if (\in_array($current_subscription->getSubscriptionType(), Subscription::getSubscriptionTypesNeedBraintreeId(), TRUE)) {
+    if ($this->isBraintreeManaged($current_subscription)) {
       $braintree_subscription = $this->braintreeApi->getGateway()->subscription()->find($current_subscription->getBraintreeSubscriptionId());
       if (empty($braintree_subscription->billingPeriodEndDate)) {
         // The subscription must be on a free trial.
