@@ -104,7 +104,7 @@ class CouponTest extends JavascriptTestBase {
       'cvv' => '123',
       'postal_code' => '12345',
     ]);
-    $this->getSession()->getPage()->pressButton('Update payment method');
+    $this->getSession()->getPage()->pressButton('Replace payment method');
     $this->assertSession()->waitForElementVisible('css', '.messages--status', 20000);
     $this->assertSession()->pageTextContains('Your payment method has been updated successfully!');
     $this->drupalGet(Url::fromRoute('braintree_cashier.my_subscription', [
