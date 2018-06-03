@@ -78,44 +78,6 @@ class WebhookTest extends BrowserTestBase {
   }
 
   /**
-   * Test updating the billing period end date upon renewal.
-   *
-   * When a user cancels after having a subscription renewed, they should see
-   * the correct date indicating when their access expires.
-   */
-  public function testPeriodEndDateUponRenewal() {
-    $this->drupalGet('<front>');
-
-    $sample_notification = $this->braintreeApi->getGateway()->webhookTesting()->sampleNotification(\Braintree_WebhookNotification::SUBSCRIPTION_CHARGED_SUCCESSFULLY, '123');
-    $this->drupalPostForm(Url::fromRoute('braintree_api_test.webhook_notification_test_form'), [
-      'bt_signature' => $sample_notification['bt_signature'],
-      'bt_payload' => $sample_notification['bt_payload'],
-    ], 'Submit');
-
-    $this->assertSession()->pageTextContains('Thanks!');
-
-    $this->drupalLogin($this->account);
-
-    $url = Url::fromRoute('braintree_cashier.my_subscription', [
-      'user' => $this->account->id(),
-    ]);
-    $this->drupalGet($url->toString());
-
-    $this->assertSession()->pageTextContains('CI Monthly');
-
-    // Canceling exposes the period end date on the my subscription tab.
-    $subscription_entity = Subscription::load($this->subscriptionEntityId);
-    $subscription_entity->setCancelAtPeriodEnd(TRUE);
-    $subscription_entity->save();
-
-    $this->drupalGet($url->toString());
-
-    // The sample webhook sets the period end date to 2017-03-31.
-    // @see \Braintree\WebhookTesting::_subscriptionChargedSuccessfullySampleXml
-    $this->assertSession()->pageTextContains('2017-03-31');
-  }
-
-  /**
    * Test subscription canceled webhook.
    *
    * Tests that a webhook received from Braintree that notifies that a
