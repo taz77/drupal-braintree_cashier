@@ -91,14 +91,6 @@ class SettingsForm extends ConfigFormBase {
       '#default_value' => $config->get('duplicate_payment_method_message'),
     ];
 
-    $form['generic_declined_message'] = [
-      '#type' => 'text_format',
-      '#format' => empty($config->get('generic_declined_message')['format']) ? NULL : $config->get('generic_declined_message')['format'],
-      '#title' => $this->t('Generic declined message'),
-      '#description' => $this->t('The message to display to a user when their payment method is declined while attempting to check out.'),
-      '#default_value' => $config->get('generic_declined_message')['value'],
-    ];
-
     $form['invoice_business_information'] = [
       '#type' => 'text_format',
       '#format' => empty($config->get('invoice_business_information')['format']) ? NULL : $config->get('invoice_business_information')['format'],
@@ -135,7 +127,6 @@ class SettingsForm extends ConfigFormBase {
     $config = $this->config('braintree_cashier.settings');
     $values = $form_state->getValues();
     $keys = [
-      'generic_declined_message',
       'currency_code',
       'invoice_business_information',
       'force_locale_en',
