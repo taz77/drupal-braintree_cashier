@@ -152,7 +152,7 @@ class PaymentMethodForm extends FormBase {
       drupal_set_message($this->t('Your payment method has been updated successfully!'));
     }
     else {
-      drupal_set_message($this->t('There was an error updating your payment method. Please try again.', 'error'));
+      drupal_set_message($this->t('There was an error updating your payment method. Please try again.'), 'error');
     }
   }
 

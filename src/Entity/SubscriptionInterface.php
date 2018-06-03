@@ -270,4 +270,23 @@ interface SubscriptionInterface extends ContentEntityInterface, EntityChangedInt
    */
   public function setType($type);
 
+  /**
+   * Gets whether the subscription is on a free trial managed by Braintree.
+   *
+   * @return boolean
+   *   A boolean indicating whether the subscription is on a free trial.
+   */
+  public function isTrialing();
+
+  /**
+   * Sets whether the subscription is on a free trial managed by Braintree.
+   *
+   * @param boolean $is_trialing
+   *   A boolean indicating whether the subscription is on a free trial.
+   *
+   * @return \Drupal\braintree_cashier\Entity\SubscriptionInterface
+   *   The subscription entity.
+   */
+  public function setIsTrialing($is_trialing);
+
 }

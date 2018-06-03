@@ -421,6 +421,14 @@ class Subscription extends ContentEntityBase implements SubscriptionInterface {
       ])
       ->setDefaultValue(FALSE);
 
+    $fields['is_trialing'] = BaseFieldDefinition::create('boolean')
+      ->setLabel(t('Is trialing'))
+      ->setDescription(t('The subscription is currently on a free trial managed by Braintree'))
+      ->setDisplayOptions('form', [
+        'weight' => 0,
+      ])
+      ->setDefaultValue(FALSE);
+
     // The description is set in \Drupal\braintree_cashier\Form\SubscriptionForm::setPeriodEndDateDescription.
     // @see https://www.drupal.org/node/2508866.
     $fields['period_end_date'] = BaseFieldDefinition::create('timestamp')
@@ -529,6 +537,21 @@ class Subscription extends ContentEntityBase implements SubscriptionInterface {
     $types[] = self::PAID_INDIVIDUAL;
     \Drupal::moduleHandler()->alter('braintree_cashier_subscription_types_need_braintree_id', $types);
     return $types;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function isTrialing() {
+    return $this->get('is_trialing')->value;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setIsTrialing($is_trialing) {
+    $this->set('is_trialing', $is_trialing);
+    return $this;
   }
 
 }

@@ -468,12 +468,10 @@ class SubscriptionService {
       'planId' => $billing_plan->getBraintreePlanId(),
     ], $options);
 
+    // Override the trialPeriod setting if the billing plan has free trials.
     if ($billing_plan->hasFreeTrial()) {
       $payload['trialPeriod'] = !$user->get('had_free_trial')->value;
     }
-
-    // Override the trialPeriod setting if the billing plan has free trials.
-
 
     if (!empty($coupon)) {
       $payload = $this->addCouponToPayload($coupon, $payload);
@@ -628,6 +626,7 @@ class SubscriptionService {
       'roles_to_revoke' => $billing_plan->getRolesToRevoke(),
       'period_end_date' => $braintree_subscription->nextBillingDate->getTimestamp(),
       'braintree_subscription_id' => $braintree_subscription->id,
+      'is_trialing' => $braintree_subscription->trialPeriod,
     ];
 
     $this->moduleHandler->alter('braintree_cashier_create_subscription_params', $params, $billing_plan, $form_state);

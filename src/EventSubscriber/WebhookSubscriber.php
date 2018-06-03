@@ -85,12 +85,12 @@ class WebhookSubscriber implements EventSubscriberInterface {
    * @throws \Drupal\Core\Entity\EntityStorageException
    */
   public function handleWebhook(BraintreeApiWebhookEvent $event) {
-    // Process an expired or canceled subscription.
-    $subscription_webhooks = [
-      \Braintree_WebhookNotification::SUBSCRIPTION_CANCELED,
-      \Braintree_WebhookNotification::SUBSCRIPTION_EXPIRED,
-    ];
 
+    $subscription_webhooks = [
+      \Braintree_WebhookNotification::SUBSCRIPTION_EXPIRED,
+      \Braintree_WebhookNotification::SUBSCRIPTION_CANCELED,
+      \Braintree_WebhookNotification::SUBSCRIPTION_TRIAL_ENDED,
+    ];
     if (\in_array($event->getKind(), $subscription_webhooks, TRUE)) {
       $braintree_subscription = $event->getWebhookNotification()->subscription;
       try {
@@ -102,8 +102,18 @@ class WebhookSubscriber implements EventSubscriberInterface {
         return;
       }
 
-      $subscription_entity->setStatus(SubscriptionInterface::CANCELED);
-      $subscription_entity->save();
+      switch ($event->getKind()) {
+        case \Braintree_WebhookNotification::SUBSCRIPTION_CANCELED:
+        case \Braintree_WebhookNotification::SUBSCRIPTION_EXPIRED:
+          $subscription_entity->setStatus(SubscriptionInterface::CANCELED);
+          $subscription_entity->save();
+          break;
+
+        case \Braintree_WebhookNotification::SUBSCRIPTION_TRIAL_ENDED:
+          $subscription_entity->setIsTrialing(FALSE);
+          $subscription_entity->save();
+          break;
+      }
     }
   }
 
