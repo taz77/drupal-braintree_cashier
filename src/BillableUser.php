@@ -88,6 +88,8 @@ class BillableUser {
    *   The container aware event dispatcher.
    * @param \Drupal\braintree_api\BraintreeApiService $braintreeApiService
    *   The Braintree API service.
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $configFactory
+   *   The config factory.
    *
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    */

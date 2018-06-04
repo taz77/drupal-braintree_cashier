@@ -143,7 +143,7 @@ class SubscriptionService {
    *   The module handler.
    * @param \Drupal\Component\EventDispatcher\ContainerAwareEventDispatcher $eventDispatcher
    *   The container aware event dispatcher.
-   * @param \Drupal\Core\Datetime\DateFormatterInterface
+   * @param \Drupal\Core\Datetime\DateFormatterInterface $dateFormatter
    *   The date formatter service.
    *
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException

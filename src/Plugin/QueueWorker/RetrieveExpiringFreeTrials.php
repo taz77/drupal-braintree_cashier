@@ -37,7 +37,7 @@ class RetrieveExpiringFreeTrials extends QueueWorkerBase implements ContainerFac
   /**
    * Braintree Cashier configuration.
    *
-   * \Drupal\Core\Config\ImmutableConfig.
+   * @var \Drupal\Core\Config\ImmutableConfig
    */
   protected $bcConfig;
 
@@ -49,6 +49,8 @@ class RetrieveExpiringFreeTrials extends QueueWorkerBase implements ContainerFac
   protected $queueFactory;
 
   /**
+   * The subscription service.
+   *
    * @var \Drupal\braintree_cashier\SubscriptionService
    */
   protected $subscriptionService;
@@ -151,7 +153,7 @@ class RetrieveExpiringFreeTrials extends QueueWorkerBase implements ContainerFac
           'currency_code' => $currency_code,
           'next_billing_date' => $braintree_subscription->nextBillingDate->getTimestamp(),
         ];
-        // Surely the free trial expiry notification will be sent within 30 days.
+        // Assumes free trial expiry notification will be sent within 30 days.
         $duration_in_key_value_store = 3600 * 24 * 30;
         // Expire the entry in the key-value store to avoid clogging the DB.
         $this->freeTrialNotificationsStore->setWithExpireIfNotExists($subscription_entity->id(), 'uid: ' . $subscription_entity->getSubscribedUserId(), $duration_in_key_value_store);
