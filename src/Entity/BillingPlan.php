@@ -378,7 +378,7 @@ class BillingPlan extends ContentEntityBase implements BillingPlanInterface {
       ->setLabel(t('Changed'))
       ->setDescription(t('The time that the entity was last edited.'));
 
-    $fields['price'] = BaseFieldDefinition::create('string')
+    $fields['price'] = BaseFieldDefinition::create('text_long')
       ->setLabel(t('Price'))
       ->setDescription(t('For display on the plans overview page. For example <em>$12</em>.'))
       ->setDisplayOptions('form', [
