@@ -131,7 +131,7 @@ class MySubscriptionController extends ControllerBase {
       $current_subscription_label = $subscription->label();
       if ($subscription->willCancelAtPeriodEnd()) {
         $current_subscription_label = $this->t('Canceled -- access expires on %date', [
-          '%date' => $this->subscriptionService->getFormattedPeriodEndDate($subscription)
+          '%date' => $this->subscriptionService->getFormattedPeriodEndDate($subscription),
         ]);
       }
       $build['#current_subscription_label'] = $current_subscription_label;

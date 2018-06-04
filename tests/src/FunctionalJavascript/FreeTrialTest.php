@@ -1,17 +1,13 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: shaundychko
- * Date: 2018-05-31
- * Time: 9:03 AM
- */
 
 namespace Drupal\Tests\braintree_cashier\FunctionalJavascript;
-
 
 use Drupal\Core\Url;
 use Drupal\FunctionalJavascriptTests\JavascriptTestBase;
 
+/**
+ * Test free trials.
+ */
 class FreeTrialTest extends JavascriptTestBase {
 
   use BraintreeCashierTrait;
@@ -119,4 +115,5 @@ class FreeTrialTest extends JavascriptTestBase {
     ]));
     $this->assertSession()->elementTextContains('css', '.payment-history', '$9.00');
   }
+
 }

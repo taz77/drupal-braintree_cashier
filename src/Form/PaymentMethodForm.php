@@ -8,7 +8,6 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Session\AccountInterface;
-use Drupal\Core\Url;
 use Drupal\user\Entity\User;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\braintree_api\BraintreeApiService;
@@ -98,8 +97,8 @@ class PaymentMethodForm extends FormBase {
         '#attributes' => [
           'id' => 'submit-button',
           'class' => [
-            'btn-success'
-          ]
+            'btn-success',
+          ],
         ],
       ],
     ];

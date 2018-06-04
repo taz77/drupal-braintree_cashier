@@ -75,7 +75,6 @@ class BillableUser {
    */
   protected $bcConfig;
 
-
   /**
    * BillableUser constructor.
    *
@@ -319,7 +318,7 @@ class BillableUser {
 
     // Check for duplicate payment methods.
     if ($this->bcConfig->get('prevent_duplicate_payment_methods')) {
-      foreach($result->customer->paymentMethods as $payment_method) {
+      foreach ($result->customer->paymentMethods as $payment_method) {
         if (!$this->preventDuplicatePaymentMethods($user, $payment_method)) {
           $this->braintreeApiService->getGateway()->customer()->delete($result->customer->id);
           return FALSE;
@@ -398,7 +397,7 @@ class BillableUser {
     try {
       $payload = [
         'version' => $version,
-        ];
+      ];
       if ($user !== NULL && !empty($this->getBraintreeCustomerId($user))) {
         $payload['customerId'] = $this->getBraintreeCustomerId($user);
         $payload['options'] = [
@@ -473,7 +472,7 @@ class BillableUser {
    * @param mixed $payment_method
    *   The payment method object.
    *
-   * @return boolean
+   * @return bool
    *   A boolean indicating whether another user account owns the method.
    */
   public function isDuplicatePaymentMethod(User $user, $payment_method) {
@@ -501,7 +500,7 @@ class BillableUser {
    * @param mixed $payment_method
    *   The payment method object.
    *
-   * @return boolean
+   * @return bool
    *   A boolean indicating whether the identifier was successfully recorded.
    */
   public function recordPaymentMethodIdentifier(User $user, $payment_method) {
@@ -527,7 +526,7 @@ class BillableUser {
    * @param mixed $payment_method
    *   The payment method object.
    *
-   * @return boolean
+   * @return bool
    *   A boolean indicating success with preventing duplicate payment methods.
    */
   public function preventDuplicatePaymentMethods(User $user, $payment_method) {

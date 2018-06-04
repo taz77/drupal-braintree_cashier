@@ -2,10 +2,8 @@
 
 namespace Drupal\braintree_cashier\Plugin\QueueWorker;
 
-
 use Drupal\braintree_cashier\Entity\Subscription;
 use Drupal\Core\Config\ConfigFactoryInterface;
-use Drupal\Core\KeyValueStore\KeyValueFactoryInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Queue\QueueWorkerBase;
 use Drupal\message\Entity\Message;

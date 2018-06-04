@@ -754,7 +754,7 @@ class SubscriptionService {
       'formatted_period_end_date' => $this->dateFormatter->format($timestamp, 'html_date'),
       'timestamp' => $timestamp,
       'subscription_entity' => $current_subscription,
-      ];
+    ];
     $this->moduleHandler->alter('braintree_cashier_formatted_period_end_date', $data);
     return $data['formatted_period_end_date'];
   }

@@ -37,7 +37,7 @@ class RetrieveExpiringFreeTrials extends QueueWorkerBase implements ContainerFac
   /**
    * Braintree Cashier configuration.
    *
-   * \Drupal\Core\Config\ImmutableConfig
+   * \Drupal\Core\Config\ImmutableConfig.
    */
   protected $bcConfig;
 
@@ -75,7 +75,7 @@ class RetrieveExpiringFreeTrials extends QueueWorkerBase implements ContainerFac
   protected $bcService;
 
   /**
-   * The subscriptions to notify store
+   * The subscriptions to notify store.
    *
    * @var \Drupal\Core\KeyValueStore\KeyValueStoreExpirableInterface
    */
@@ -130,9 +130,9 @@ class RetrieveExpiringFreeTrials extends QueueWorkerBase implements ContainerFac
       \Braintree_SubscriptionSearch::status()->in(
         [\Braintree_Subscription::ACTIVE]
       ),
-      \Braintree_SubscriptionSearch::inTrialPeriod()->is(true),
+      \Braintree_SubscriptionSearch::inTrialPeriod()->is(TRUE),
       \Braintree_SubscriptionSearch::nextBillingDate()
-      ->lessThanOrEqualTo($lookaheadPeriod),
+        ->lessThanOrEqualTo($lookaheadPeriod),
     ]);
 
     $items = [];
