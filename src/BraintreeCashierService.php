@@ -303,10 +303,7 @@ class BraintreeCashierService {
       ->condition('discount_id', $coupon_code)
       ->count();
 
-    if ($query->execute() > 0) {
-      return TRUE;
-    }
-    return FALSE;
+    return $query->execute() > 0;
   }
 
   /**
