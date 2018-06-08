@@ -125,7 +125,7 @@ class RetrieveExpiringFreeTrials extends QueueWorkerBase implements ContainerFac
       $container->get('braintree_cashier.subscription_service'),
       $container->get('braintree_cashier.braintree_cashier_service'),
       $container->get('keyvalue.expirable'),
-      $container->get('logger.channel.braintree_cashier:')
+      $container->get('logger.channel.braintree_cashier')
     );
   }
 
