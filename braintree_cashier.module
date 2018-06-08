@@ -177,6 +177,7 @@ function braintree_cashier_cron() {
     ->condition('cancel_at_period_end', TRUE)
     ->condition('period_end_date', time(), '<')
     ->condition('subscription_type', SubscriptionInterface::FREE)
+    ->condition('status', SubscriptionInterface::ACTIVE)
     ->execute();
 
   $subscriptions = Subscription::loadMultiple($subscription_ids_to_cancel);
