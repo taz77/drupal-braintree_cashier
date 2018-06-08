@@ -4,6 +4,7 @@ namespace Drupal\braintree_cashier\Plugin\QueueWorker;
 
 use Drupal\braintree_cashier\Entity\Subscription;
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Queue\QueueWorkerBase;
 use Drupal\message\Entity\Message;
@@ -36,12 +37,20 @@ class FreeTrialExpiringNotifier extends QueueWorkerBase implements ContainerFact
   protected $messageNotifier;
 
   /**
+   * The Braintree Cashier logger channel.
+   *
+   * @var \Drupal\Core\Logger\LoggerChannelInterface
+   */
+  protected $logger;
+
+  /**
    * FreeTrialExpiringNotifier constructor.
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, ConfigFactoryInterface $configFactory, MessageNotifier $messageNotifier) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, ConfigFactoryInterface $configFactory, MessageNotifier $messageNotifier, LoggerChannelInterface $logger) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->configFactory = $configFactory;
     $this->messageNotifier = $messageNotifier;
+    $this->logger = $logger;
   }
 
   /**
@@ -53,7 +62,8 @@ class FreeTrialExpiringNotifier extends QueueWorkerBase implements ContainerFact
       $plugin_id,
       $plugin_definition,
       $container->get('config.factory'),
-      $container->get('message_notify.sender')
+      $container->get('message_notify.sender'),
+      $container->get('logger.channel.braintree_cashier')
     );
   }
 
@@ -73,6 +83,7 @@ class FreeTrialExpiringNotifier extends QueueWorkerBase implements ContainerFact
     ]);
     $message->save();
     $this->messageNotifier->send($message);
+    $this->logger('Sent free trial ending notification for subscription with entity id %id', ['%id' => $subscription_entity->id()]);
   }
 
 }
