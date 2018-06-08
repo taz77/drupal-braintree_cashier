@@ -83,7 +83,7 @@ class FreeTrialExpiringNotifier extends QueueWorkerBase implements ContainerFact
     ]);
     $message->save();
     $this->messageNotifier->send($message);
-    $this->logger('Sent free trial ending notification for subscription with entity id %id', ['%id' => $subscription_entity->id()]);
+    $this->logger->info('Sent free trial ending notification for subscription with entity id %id', ['%id' => $subscription_entity->id()]);
   }
 
 }
