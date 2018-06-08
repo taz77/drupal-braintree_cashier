@@ -193,8 +193,8 @@ function braintree_cashier_cron() {
   if ($free_trial_notification_period > 0 && \Drupal::time()->getRequestTime() > strtotime('+8 hours', $last_check)) {
     $queue = \Drupal::queue('retrieve_expiring_free_trials');
     $queue->createItem(\Drupal::time()->getRequestTime());
+    \Drupal::state()->set('braintree_cashier.last_free_trial_expiring_check', \Drupal::time()->getRequestTime());
   }
-  \Drupal::state()->set('braintree_cashier.last_free_trial_expiring_check', \Drupal::time()->getRequestTime());
 }
 
 /**
