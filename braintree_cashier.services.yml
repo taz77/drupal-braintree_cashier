@@ -27,6 +27,7 @@ services:
       - '@event_dispatcher'
       - '@braintree_api.braintree_api'
       - '@config.factory'
+      - '@theme.manager'
 
   braintree_cashier.subscription_service:
     class: Drupal\braintree_cashier\SubscriptionService

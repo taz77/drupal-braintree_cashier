@@ -516,7 +516,11 @@ class Subscription extends ContentEntityBase implements SubscriptionInterface {
       $user->save();
     }
     // Invalidate the "Subscription" tab local tasks cache.
-    Cache::invalidateTags(['user:' . $this->getSubscribedUserId()]);
+    $theme_machine_name = \Drupal::theme()->getActiveTheme()->getName();
+    Cache::invalidateTags([
+      'user:' . $this->getSubscribedUserId(),
+      'config:block.block.' . $theme_machine_name . '_local_tasks',
+      ]);
   }
 
   /**
@@ -528,6 +532,8 @@ class Subscription extends ContentEntityBase implements SubscriptionInterface {
       /** @var \Drupal\braintree_cashier\Entity\SubscriptionInterface $entity */
       Cache::invalidateTags(['user:' . $entity->getSubscribedUserId()]);
     }
+    $theme_machine_name = \Drupal::theme()->getActiveTheme()->getName();
+    Cache::invalidateTags(['config:block.block.' . $theme_machine_name . '_local_tasks']);
   }
 
   /**

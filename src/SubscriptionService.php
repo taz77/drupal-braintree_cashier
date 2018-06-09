@@ -180,10 +180,6 @@ class SubscriptionService {
    * @throws \Drupal\Core\Entity\EntityStorageException
    */
   public function cancel(SubscriptionInterface $subscription) {
-    // Invalidate the "Subscription" tab local tasks cache so that the "Cancel"
-    // task will disappear.
-    Cache::invalidateTags(['user:' . $subscription->getSubscribedUserId()]);
-
     if ($this->isBraintreeManaged($subscription)) {
       $braintree_subscription = $this->asBraintreeSubscription($subscription);
 
@@ -329,10 +325,6 @@ class SubscriptionService {
     ]);
     $subscription->setCancelAtPeriodEnd(FALSE);
     $subscription->save();
-
-    // Invalidate the "Subscription" tab local tasks cache so that the "Cancel"
-    // task will appear.
-    Cache::invalidateTags(['user:' . $subscription->getSubscribedUserId()]);
 
     return $subscription;
   }

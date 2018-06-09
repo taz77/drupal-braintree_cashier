@@ -168,10 +168,6 @@ class CancelConfirmForm extends ConfirmFormBase {
       $this->subscriptionService->cancel($subscription);
       $event = new SubscriptionCanceledByUserEvent($subscription);
       $this->eventDispatcher->dispatch(BraintreeCashierEvents::SUBSCRIPTION_CANCELED_BY_USER, $event);
-
-      // Invalidate the "Subscription" tab local tasks cache so that the
-      // "Cancel" task will disappear.
-      Cache::invalidateTags(['user:' . $subscription->getSubscribedUserId()]);
     }
     $form_state->setRedirect('braintree_cashier.my_subscription', [
       'user' => $values['uid'],

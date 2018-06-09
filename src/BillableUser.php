@@ -10,11 +10,13 @@ use Drupal\braintree_cashier\Event\BraintreeCustomerCreatedEvent;
 use Drupal\braintree_cashier\Event\BraintreeErrorEvent;
 use Drupal\braintree_cashier\Event\PaymentMethodUpdatedEvent;
 use Drupal\Component\EventDispatcher\ContainerAwareEventDispatcher;
+use Drupal\Core\Cache\Cache;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\Core\Theme\ThemeManagerInterface;
 use Drupal\user\Entity\User;
 
 /**
@@ -76,6 +78,13 @@ class BillableUser {
   protected $bcConfig;
 
   /**
+   * The theme manager.
+   *
+   * @var \Drupal\Core\Theme\ThemeManagerInterface
+   */
+  private $themeManager;
+
+  /**
    * BillableUser constructor.
    *
    * @param \Drupal\Core\Logger\LoggerChannelInterface $logger
@@ -90,10 +99,12 @@ class BillableUser {
    *   The Braintree API service.
    * @param \Drupal\Core\Config\ConfigFactoryInterface $configFactory
    *   The config factory.
+   * @param \Drupal\Core\Theme\ThemeManagerInterface $themeManager
+   *   The theme manager.
    *
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    */
-  public function __construct(LoggerChannelInterface $logger, EntityTypeManagerInterface $entity_type_manager, BraintreeCashierService $bcService, ContainerAwareEventDispatcher $eventDispatcher, BraintreeApiService $braintreeApiService, ConfigFactoryInterface $configFactory) {
+  public function __construct(LoggerChannelInterface $logger, EntityTypeManagerInterface $entity_type_manager, BraintreeCashierService $bcService, ContainerAwareEventDispatcher $eventDispatcher, BraintreeApiService $braintreeApiService, ConfigFactoryInterface $configFactory, ThemeManagerInterface $themeManager) {
     $this->logger = $logger;
     $this->subscriptionStorage = $entity_type_manager->getStorage('subscription');
     $this->userStorage = $entity_type_manager->getStorage('user');
@@ -101,6 +112,7 @@ class BillableUser {
     $this->eventDispatcher = $eventDispatcher;
     $this->braintreeApiService = $braintreeApiService;
     $this->bcConfig = $configFactory->get('braintree_cashier.settings');
+    $this->themeManager = $themeManager;
   }
 
   /**
@@ -333,6 +345,11 @@ class BillableUser {
 
     $event = new BraintreeCustomerCreatedEvent($user);
     $this->eventDispatcher->dispatch(BraintreeCashierEvents::BRAINTREE_CUSTOMER_CREATED, $event);
+
+    // Invalidate the local tasks cache to make the "Invoices" task appear when
+    // viewed by other users such as administrators.
+    $theme_machine_name = \Drupal::theme()->getActiveTheme()->getName();
+    Cache::invalidateTags(['config:block.block.' . $theme_machine_name . '_local_tasks',]);
 
     return $result->customer;
   }
