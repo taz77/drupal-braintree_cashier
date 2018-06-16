@@ -154,6 +154,13 @@ class Discount extends ContentEntityBase implements DiscountInterface {
   /**
    * {@inheritdoc}
    */
+  public function getBraintreeDiscountId() {
+    return $this->get('discount_id')->value;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public static function baseFieldDefinitions(EntityTypeInterface $entity_type) {
     $fields = parent::baseFieldDefinitions($entity_type);
 

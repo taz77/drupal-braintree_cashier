@@ -80,4 +80,12 @@ interface DiscountInterface extends ContentEntityInterface, EntityChangedInterfa
    */
   public function setPublished($published);
 
+  /**
+   * Gets the Braintree Discount ID.
+   *
+   * @return string
+   *   The discount ID in the Braintree console.
+   */
+  public function getBraintreeDiscountId();
+
 }
