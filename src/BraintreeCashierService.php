@@ -4,6 +4,7 @@ namespace Drupal\braintree_cashier;
 
 use Drupal\braintree_api\BraintreeApiService;
 use Drupal\braintree_cashier\Entity\BillingPlanInterface;
+use Drupal\braintree_cashier\Entity\Discount;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Logger\LoggerChannelInterface;
@@ -298,12 +299,21 @@ class BraintreeCashierService {
     $query = $this->discountStorage->getQuery();
 
     // Check that the code exists, and applies to the current selected plan.
+    // Queries are case insensitive.
     $query->condition('billing_plan', $billing_plan->id())
       ->condition('status', TRUE)
-      ->condition('discount_id', $coupon_code)
-      ->count();
+      ->condition('discount_id', $coupon_code);
 
-    return $query->execute() > 0;
+    $results = $query->execute();
+    foreach ($results as $result) {
+      $discount = Discount::load($result);
+      // The Braintree API is case sensitive, so the identical operator is
+      // needed.
+      if ($discount->getBraintreeDiscountId() === $coupon_code) {
+        return TRUE;
+      }
+    }
+    return FALSE;
   }
 
   /**
