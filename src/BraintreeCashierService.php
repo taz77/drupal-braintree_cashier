@@ -307,9 +307,8 @@ class BraintreeCashierService {
     $results = $query->execute();
     foreach ($results as $result) {
       $discount = Discount::load($result);
-      // The Braintree API is case sensitive, so the identical operator is
-      // needed.
-      if ($discount->getBraintreeDiscountId() === $coupon_code) {
+      // The Braintree API is case sensitive.
+      if (strcmp($discount->getBraintreeDiscountId(), $coupon_code) === 0) {
         return TRUE;
       }
     }
