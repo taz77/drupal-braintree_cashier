@@ -520,7 +520,7 @@ class Subscription extends ContentEntityBase implements SubscriptionInterface {
     Cache::invalidateTags([
       'user:' . $this->getSubscribedUserId(),
       'config:block.block.' . $theme_machine_name . '_local_tasks',
-      ]);
+    ]);
   }
 
   /**

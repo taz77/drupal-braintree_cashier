@@ -82,7 +82,7 @@ class BillableUser {
    *
    * @var \Drupal\Core\Theme\ThemeManagerInterface
    */
-  private $themeManager;
+  protected $themeManager;
 
   /**
    * BillableUser constructor.
@@ -348,8 +348,8 @@ class BillableUser {
 
     // Invalidate the local tasks cache to make the "Invoices" task appear when
     // viewed by other users such as administrators.
-    $theme_machine_name = \Drupal::theme()->getActiveTheme()->getName();
-    Cache::invalidateTags(['config:block.block.' . $theme_machine_name . '_local_tasks',]);
+    $theme_machine_name = $this->themeManager->getActiveTheme()->getName();
+    Cache::invalidateTags(['config:block.block.' . $theme_machine_name . '_local_tasks']);
 
     return $result->customer;
   }

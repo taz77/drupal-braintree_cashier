@@ -9,7 +9,6 @@ use Drupal\braintree_cashier\Entity\SubscriptionInterface;
 use Drupal\braintree_cashier\Event\BraintreeCashierEvents;
 use Drupal\braintree_cashier\Event\BraintreeErrorEvent;
 use Drupal\Component\EventDispatcher\ContainerAwareEventDispatcher;
-use Drupal\Core\Cache\Cache;
 use Drupal\Core\Config\ConfigFactory;
 use Drupal\Core\Datetime\DateFormatterInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
