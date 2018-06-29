@@ -78,7 +78,6 @@ class AdminPagesTest extends BrowserTestBase {
       'Name',
       'Subscription status',
       'Created',
-      'Period end date',
       'Cancel at period end',
       'Subscription type',
       'Operations links',
