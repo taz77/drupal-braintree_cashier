@@ -99,6 +99,12 @@ class SettingsForm extends ConfigFormBase {
       '#default_value' => $config->get('invoice_business_information')['value'],
     ];
 
+    $form['debug'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Enable additional logging for debugging'),
+      '#default_value' => $config->get('debug'),
+    ];
+
     return parent::buildForm($form, $form_state);
 
   }
@@ -134,6 +140,7 @@ class SettingsForm extends ConfigFormBase {
       'prevent_duplicate_payment_methods',
       'accept_paypal',
       'duplicate_payment_method_message',
+      'debug',
     ];
     foreach ($keys as $key) {
       if (isset($values[$key])) {

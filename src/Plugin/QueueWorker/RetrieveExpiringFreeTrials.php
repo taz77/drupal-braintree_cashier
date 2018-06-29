@@ -167,7 +167,9 @@ class RetrieveExpiringFreeTrials extends QueueWorkerBase implements ContainerFac
         $duration_in_key_value_store = 3600 * 24 * 30;
         // Expire the entry in the key-value store to avoid clogging the DB.
         $this->freeTrialNotificationsStore->setWithExpireIfNotExists($subscription_entity->id(), 'uid: ' . $subscription_entity->getSubscribedUserId(), $duration_in_key_value_store);
-        $this->logger->info('Queued subscription with entity id %id for free trial ending notification.', ['%id' => $subscription_entity->id()]);
+        if ($this->bcConfig->get('debug')) {
+          $this->logger->info('Queued subscription with entity id %id for free trial ending notification.', ['%id' => $subscription_entity->id()]);
+        }
       }
     }
 
@@ -182,7 +184,9 @@ class RetrieveExpiringFreeTrials extends QueueWorkerBase implements ContainerFac
     foreach ($items as $item) {
       $notificationQueue->createItem($item);
     }
-    $this->logger->info('Finished checking for free trials that are ending within @days days', ['@days' => $this->bcConfig->get('free_trial_notification_period')]);
+    if ($this->bcConfig->get('debug')) {
+      $this->logger->info('Finished checking for free trials that are ending within @days days', ['@days' => $this->bcConfig->get('free_trial_notification_period')]);
+    }
   }
 
 }
