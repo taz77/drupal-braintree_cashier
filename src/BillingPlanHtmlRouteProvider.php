@@ -22,6 +22,8 @@ class BillingPlanHtmlRouteProvider extends AdminHtmlRouteProvider {
 
     $entity_type_id = $entity_type->id();
 
+    $collection->get('entity.billing_plan.collection')->setOption('_admin_route', TRUE);
+
     if ($settings_form_route = $this->getSettingsFormRoute($entity_type)) {
       $collection->add("$entity_type_id.settings", $settings_form_route);
     }

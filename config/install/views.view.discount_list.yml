@@ -261,7 +261,7 @@ display:
         billing_plan:
           id: billing_plan
           table: discount__billing_plan
-          field: billing_plan
+          field: billing_plan_target_id
           relationship: none
           group_type: group
           admin_label: ''
@@ -515,7 +515,7 @@ display:
       arguments: {  }
       display_extenders: {  }
     cache_metadata:
-      max-age: 0
+      max-age: -1
       contexts:
         - 'languages:language_content'
         - 'languages:language_interface'
@@ -528,10 +528,11 @@ display:
     display_title: Page
     position: 1
     display_options:
-      display_extenders: {  }
-      path: admin/config/braintree-cashier/discount-list
+      display_extenders:
+        metatag_display_extender: {  }
+      path: braintree-cashier/discount-list
     cache_metadata:
-      max-age: 0
+      max-age: -1
       contexts:
         - 'languages:language_content'
         - 'languages:language_interface'

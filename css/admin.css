@@ -1,0 +1,7 @@
+.toolbar-icon-braintree-cashier-admin-index:before {
+  background-image: url(../icons/787878/fontawesome-money-grey.svg);
+}
+.toolbar-icon-braintree-cashier-admin-index:active:before,
+.toolbar-icon-braintree-cashier-admin-index.is-active:before {
+  background-image: url(../icons/000000/fontawesome-money-black.svg);
+}

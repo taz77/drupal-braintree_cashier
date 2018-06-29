@@ -17,7 +17,7 @@ braintree_cashier.admin_index:
   title: 'Braintree Cashier'
   route_name: braintree_cashier.admin_index
   description: 'Configure Braintree Cashier module.'
-  parent: system.admin_config
+  parent: system.admin
   weight: 5
 
 braintree_cashier.settings_form:

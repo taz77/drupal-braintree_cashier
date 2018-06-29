@@ -45,11 +45,11 @@ use Drupal\user\UserInterface;
  *     "status" = "status",
  *   },
  *   links = {
- *     "canonical" = "/admin/config/braintree-cashier/subscription/{subscription}",
- *     "add-form" = "/admin/config/braintree-cashier/subscription/add",
- *     "edit-form" = "/admin/config/braintree-cashier/subscription/{subscription}/edit",
- *     "delete-form" = "/admin/config/braintree-cashier/subscription/{subscription}/delete",
- *     "collection" = "/admin/config/braintree-cashier/subscription-list",
+ *     "canonical" = "/braintree-cashier/subscription/{subscription}",
+ *     "add-form" = "/braintree-cashier/subscription/add",
+ *     "edit-form" = "/braintree-cashier/subscription/{subscription}/edit",
+ *     "delete-form" = "/braintree-cashier/subscription/{subscription}/delete",
+ *     "collection" = "/braintree-cashier/subscription-list",
  *   },
  *   field_ui_base_route = "subscription.settings",
  *   constraints = {

@@ -475,7 +475,7 @@ display:
       arguments: {  }
       display_extenders: {  }
     cache_metadata:
-      max-age: 0
+      max-age: -1
       contexts:
         - 'languages:language_content'
         - 'languages:language_interface'
@@ -488,8 +488,9 @@ display:
     display_title: Page
     position: 1
     display_options:
-      display_extenders: {  }
-      path: admin/config/braintree-cashier/billing-plan-list
+      display_extenders:
+        metatag_display_extender: {  }
+      path: braintree-cashier/billing-plan-list
       menu:
         type: none
         title: 'Billing plan list'
@@ -500,7 +501,7 @@ display:
         context: '0'
         menu_name: admin
     cache_metadata:
-      max-age: 0
+      max-age: -1
       contexts:
         - 'languages:language_content'
         - 'languages:language_interface'

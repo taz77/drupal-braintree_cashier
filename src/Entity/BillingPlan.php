@@ -48,11 +48,11 @@ use Drupal\user\UserInterface;
  *     "status" = "is_available_for_purchase",
  *   },
  *   links = {
- *     "canonical" = "/admin/config/braintree-cashier/billing_plan/{billing_plan}",
- *     "add-form" = "/admin/config/braintree-cashier/billing_plan/add",
- *     "edit-form" = "/admin/config/braintree-cashier/billing_plan/{billing_plan}/edit",
- *     "delete-form" = "/admin/config/braintree-cashier/billing_plan/{billing_plan}/delete",
- *     "collection" = "/admin/config/braintree-cashier/billing-plan-list",
+ *     "canonical" = "/braintree-cashier/billing_plan/{billing_plan}",
+ *     "add-form" = "/braintree-cashier/billing_plan/add",
+ *     "edit-form" = "/braintree-cashier/billing_plan/{billing_plan}/edit",
+ *     "delete-form" = "/braintree-cashier/billing_plan/{billing_plan}/delete",
+ *     "collection" = "/braintree-cashier/billing-plan-list",
  *   },
  *   field_ui_base_route = "billing_plan.settings",
  *   constraints = {

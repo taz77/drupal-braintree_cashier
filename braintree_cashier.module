@@ -40,6 +40,13 @@ function braintree_cashier_help($route_name, RouteMatchInterface $route_match) {
 }
 
 /**
+ * Implements hook_toolbar_alter().
+ */
+function braintree_cashier_toolbar_alter(&$items) {
+  $items['administration']['#attached']['library'][] = 'braintree_cashier/admin';
+}
+
+/**
  * Implements hook_theme().
  */
 function braintree_cashier_theme() {

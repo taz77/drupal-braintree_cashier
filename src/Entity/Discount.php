@@ -46,11 +46,11 @@ use Drupal\user\UserInterface;
  *     "status" = "status",
  *   },
  *   links = {
- *     "canonical" = "/admin/config/braintree-cashier/discount/discount/{discount}",
- *     "add-form" = "/admin/config/braintree-cashier/discount/discount/add",
- *     "edit-form" = "/admin/config/braintree-cashier/discount/discount/{discount}/edit",
- *     "delete-form" = "/admin/config/braintree-cashier/discount/discount/{discount}/delete",
- *     "collection" = "/admin/config/braintree-cashier/discount-list",
+ *     "canonical" = "/braintree-cashier/discount/discount/{discount}",
+ *     "add-form" = "/braintree-cashier/discount/discount/add",
+ *     "edit-form" = "/braintree-cashier/discount/discount/{discount}/edit",
+ *     "delete-form" = "/braintree-cashier/discount/discount/{discount}/delete",
+ *     "collection" = "/braintree-cashier/discount-list",
  *   },
  *   field_ui_base_route = "discount.settings"
  * )
