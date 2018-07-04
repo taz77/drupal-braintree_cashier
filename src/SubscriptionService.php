@@ -634,6 +634,8 @@ class SubscriptionService {
       ]);
       $this->logger->error($admin_message);
       drupal_set_message($message, 'error');
+    }
+    if ($violations->count() > 0) {
       return FALSE;
     }
     $subscription_entity->save();
