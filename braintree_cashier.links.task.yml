@@ -61,7 +61,7 @@ braintree_cashier.invoices:
   weight: 10
 
 braintree_cashier.payment_method:
-  title: 'Payment method'
+  title: 'Payment Method'
   route_name: braintree_cashier.payment_method
   parent_id: braintree_cashier.collection
   weight: 20
