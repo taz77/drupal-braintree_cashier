@@ -137,8 +137,8 @@ class MySubscriptionController extends ControllerBase {
       $build['#current_subscription_label'] = $current_subscription_label;
     }
 
-    // If there's no payment method, display a signup link.
-    if (empty($this->billableUser->getBraintreeCustomerId($user))) {
+    // If the user does not have a current subscription, display a signup link.
+    if (empty($this->billableUser->getSubscriptions($user))) {
       $build['#signup_button'] = [
         '#type' => 'link',
         '#title' => $this->t('Sign up'),
