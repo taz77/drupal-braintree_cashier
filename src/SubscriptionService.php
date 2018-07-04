@@ -625,7 +625,6 @@ class SubscriptionService {
 
     /** @var \Drupal\Core\Entity\EntityConstraintViolationListInterface $violations */
     $violations = $subscription_entity->validate();
-    $message = $this->t('An error occurred creating the subscription. Please contact the site administrator.');
     foreach ($violations as $violation) {
       /** @var \Symfony\Component\Validator\ConstraintViolationInterface $violation */
       $admin_message = $this->t('Constraint validation failed when creating a subscription. Message: %message, Invalid value: %value', [
@@ -633,9 +632,9 @@ class SubscriptionService {
         '%value' => print_r($violation->getInvalidValue(), TRUE),
       ]);
       $this->logger->error($admin_message);
-      drupal_set_message($message, 'error');
     }
     if ($violations->count() > 0) {
+      drupal_set_message($this->t('An error occurred creating the subscription. Please contact the site administrator.'), 'error');
       return FALSE;
     }
     $subscription_entity->save();
