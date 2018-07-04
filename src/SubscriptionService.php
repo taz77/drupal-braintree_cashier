@@ -727,7 +727,6 @@ class SubscriptionService {
    *   The 'html_date' formatted period end date.
    */
   public function getFormattedPeriodEndDate(SubscriptionInterface $current_subscription) {
-    $timestamp = '';
     if ($this->isBraintreeManaged($current_subscription)) {
       $braintree_subscription = $this->braintreeApi->getGateway()->subscription()->find($current_subscription->getBraintreeSubscriptionId());
       if (empty($braintree_subscription->billingPeriodEndDate)) {
@@ -738,7 +737,7 @@ class SubscriptionService {
         $timestamp = $braintree_subscription->billingPeriodEndDate->getTimestamp();
       }
     }
-    if ($current_subscription->getSubscriptionType() === SubscriptionInterface::FREE) {
+    else {
       $timestamp = $current_subscription->getPeriodEndDate();
     }
     $data = [
