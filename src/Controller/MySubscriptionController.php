@@ -120,25 +120,8 @@ class MySubscriptionController extends ControllerBase {
       return $build;
     }
 
-    // Get the subscription label.
     if (empty($subscriptions)) {
       $build['#current_subscription_label'] = $this->t('None');
-    }
-    else {
-      /** @var \Drupal\braintree_cashier\Entity\SubscriptionInterface $subscription */
-      $subscription = array_shift($subscriptions);
-      $build['#current_subscription_entity'] = $subscription;
-      $current_subscription_label = $subscription->label();
-      if ($subscription->willCancelAtPeriodEnd()) {
-        $current_subscription_label = $this->t('Canceled -- access expires on %date', [
-          '%date' => $this->subscriptionService->getFormattedPeriodEndDate($subscription),
-        ]);
-      }
-      $build['#current_subscription_label'] = $current_subscription_label;
-    }
-
-    // If the user does not have a current subscription, display a signup link.
-    if (empty($this->billableUser->getSubscriptions($user))) {
       $build['#signup_button'] = [
         '#type' => 'link',
         '#title' => $this->t('Sign up'),
@@ -147,10 +130,20 @@ class MySubscriptionController extends ControllerBase {
         '#prefix' => '<div class="signup-button">',
         '#suffix' => '</div>',
       ];
+      return $build;
     }
-    else {
-      $build['#update_subscription_form'] = $this->formBuilder()->getForm('\Drupal\braintree_cashier\Form\UpdateSubscriptionForm', $user);
+
+    /** @var \Drupal\braintree_cashier\Entity\SubscriptionInterface $subscription */
+    $subscription = array_shift($subscriptions);
+    $build['#current_subscription_entity'] = $subscription;
+    $current_subscription_label = $subscription->label();
+    if ($subscription->willCancelAtPeriodEnd()) {
+      $current_subscription_label = $this->t('Canceled -- access expires on %date', [
+        '%date' => $this->subscriptionService->getFormattedPeriodEndDate($subscription),
+      ]);
     }
+    $build['#current_subscription_label'] = $current_subscription_label;
+    $build['#update_subscription_form'] = $this->formBuilder()->getForm('\Drupal\braintree_cashier\Form\UpdateSubscriptionForm', $user);
 
     return $build;
   }
