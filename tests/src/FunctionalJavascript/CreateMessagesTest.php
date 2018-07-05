@@ -240,7 +240,7 @@ class CreateMessagesTest extends JavascriptTestBase {
     $this->doAccountRegistration();
     $this->drupalGet('user');
     $this->getSession()->getPage()->clickLink('Subscription');
-    $this->getSession()->getPage()->clickLink('Payment method');
+    $this->getSession()->getPage()->clickLink('Payment Method');
     // The first time creates a new Braintree Customer instead of updating
     // a payment method.
     $this->fillInCardForm($this, [

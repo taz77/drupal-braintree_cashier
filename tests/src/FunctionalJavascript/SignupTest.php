@@ -90,7 +90,7 @@ class SignupTest extends JavascriptTestBase {
   public function testAlternativeCheckoutFlow() {
     $this->drupalGet('user');
     $this->getSession()->getPage()->clickLink('Subscription');
-    $this->getSession()->getPage()->clickLink('Payment method');
+    $this->getSession()->getPage()->clickLink('Payment Method');
     $this->fillInCardForm($this, [
       'card_number' => '4242424242424242',
       'expiration' => '1123',
