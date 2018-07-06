@@ -340,6 +340,10 @@ class BillableUser {
       }
     }
 
+    $this->logger->notice('A new Braintree Customer has been created with Braintree Customer ID: %id', [
+      '%id' => $result->customer->id,
+    ]);
+
     $user->set('braintree_customer_id', $result->customer->id);
     $user->save();
 
@@ -552,11 +556,14 @@ class BillableUser {
     if ($this->isDuplicatePaymentMethod($user, $payment_method)) {
       $this->braintreeApiService->getGateway()->paymentMethod()->delete($payment_method->token);
       drupal_set_message($this->bcConfig->get('duplicate_payment_method_message'), 'error');
+      $this->logger->error($this->bcConfig->get('duplicate_payment_method_message'));
       return FALSE;
     }
     if (!$this->recordPaymentMethodIdentifier($user, $payment_method)) {
       $this->braintreeApiService->getGateway()->paymentMethod()->delete($payment_method->token);
-      drupal_set_message($this->t('There was a problem with your payment method. Please try again, or contact a site administrator'));
+      $message = $this->t('There was a problem with your payment method. Please try again, or contact a site administrator');
+      drupal_set_message($message);
+      $this->logger->error($message);
       return FALSE;
     }
     return TRUE;

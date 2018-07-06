@@ -477,6 +477,10 @@ class SubscriptionService {
       return FALSE;
     }
 
+    $this->logger->notice('A new Braintree Subscription has been created with Braintree Subscription ID: %id', [
+      '%id' => $result->subscription->id,
+    ]);
+
     if ($billing_plan->hasFreeTrial() && !$user->get('had_free_trial')->value) {
       $user->set('had_free_trial', TRUE);
       $user->save();
@@ -680,13 +684,13 @@ class SubscriptionService {
   }
 
   /**
-   * Gets the money remaining on a yearly plan.
+   * Gets the money remaining in the current period.
    *
    * @param \Braintree_Subscription $current_subscription
    *   The current Braintree subscription from which to switch.
    *
    * @return \Money\Money
-   *   The amount of money remaining on the plan.
+   *   The amount of money remaining in the current period.
    */
   public function moneyRemainingInCurrentPeriod(\Braintree_Subscription $current_subscription) {
     $current_period_start_date = $current_subscription->billingPeriodStartDate->getTimestamp();
