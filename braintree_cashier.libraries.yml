@@ -1,17 +1,10 @@
-signup:
+dropin_support:
   js:
-    'js/signup-form.js': {}
+    'js/dropin-support.js': {}
   dependencies:
     - braintree_cashier/dropin_ui
     - core/drupalSettings
     - core/jquery
-
-payment_method:
-  js:
-    'js/payment_method.js': {}
-  dependencies:
-    - braintree_cashier/drop_in_ui
-    - core/drupalSettings
 
 dropin_ui:
   js:

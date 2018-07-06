@@ -128,9 +128,9 @@ class SignupForm extends PlanSelectFormBase {
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
 
-    // When the form is submitted by the Braintree JS, this hidden button will
-    // be the triggering element since it's first. This is needed to distinguish
-    // between clicks on the "Confirm Coupon" button, and the "Sign up" button.
+    // This hidden button will be the triggering element since it's first. This
+    // is needed to distinguish between clicks on the "Confirm Coupon" button,
+    // and the "Sign up" button.
     $form['final_submit'] = [
       '#type' => 'submit',
       '#name' => 'final_submit',
@@ -157,7 +157,7 @@ class SignupForm extends PlanSelectFormBase {
       ],
     ];
 
-    $form['#attached']['library'][] = 'braintree_cashier/signup';
+    $form['#attached']['library'][] = 'braintree_cashier/dropin_support';
     $form['#attached']['drupalSettings']['braintree_cashier'] = [
       'authorization' => $this->billableUser->generateClientToken($user),
       'acceptPaypal' => (bool) $this->config('braintree_cashier.settings')->get('accept_paypal'),

@@ -82,18 +82,45 @@ class PaymentMethodForm extends FormBase {
 
     $form['#attributes']['id'] = 'payment-method-form';
 
+    // The form submit handler isn't triggered by jQuery's $().submit().
+    // This hidden button is added for jQuery to click on to submit the form.
+    $form['final_submit'] = [
+      '#type' => 'submit',
+      '#name' => 'final_submit',
+      '#attributes' => [
+        'id' => 'final-submit',
+        'class' => [
+          'visually-hidden',
+        ],
+      ],
+      '#submit' => [[$this, 'submitForm']],
+    ];
+
     $form['uid'] = [
       '#type' => 'value',
       '#value' => $user->id(),
     ];
 
-    $form['dropin_ui'] = $this->billableUser->getDropinUiFormElement($user);
+    $form['dropin_container'] = [
+      '#type' => 'html_tag',
+      '#tag' => 'div',
+      '#attributes' => [
+        'id' => 'dropin-container',
+      ],
+    ];
+
+    $form['#attached']['library'][] = 'braintree_cashier/dropin_support';
+    $form['#attached']['drupalSettings']['braintree_cashier'] = [
+      'authorization' => $this->billableUser->generateClientToken($user),
+      'acceptPaypal' => (bool) $this->config('braintree_cashier.settings')->get('accept_paypal'),
+    ];
 
     $form['actions'] = [
       '#type' => 'actions',
       '#button_type' => 'primary',
       'submit' => [
         '#type' => 'submit',
+        '#disabled' => TRUE,
         '#attributes' => [
           'id' => 'submit-button',
           'class' => [
@@ -113,7 +140,7 @@ class PaymentMethodForm extends FormBase {
     $form['payment_method_nonce'] = [
       '#type' => 'hidden',
       '#attributes' => [
-        'id' => 'payment_method_nonce',
+        'id' => 'payment-method-nonce',
       ],
     ];
 

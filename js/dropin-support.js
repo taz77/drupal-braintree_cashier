@@ -1,11 +1,14 @@
 /**
  * @file
- * Supports payment forms created with Braintree's Drop-in UI.
+ * Supports the signup form created with Braintree's Drop-in UI.
  */
 (function ($, Drupal, drupalSettings) {
 
   'use strict';
 
+  /**
+   * Callback for the click event on the visible submit button.
+   */
   function onInitialButtonClick(event) {
     event.preventDefault();
 
@@ -16,12 +19,16 @@
       if (requestPaymentMethodErr) {
         event.data.buttonInitial.prop('disabled', false)
           .removeClass('is-disabled')
+        return;
       }
       event.data.nonceField.val(payload.nonce);
       event.data.buttonFinal.click();
     });
   }
 
+  /**
+   * Callback for after the Dropin UI instance is created.
+   */
   function onInstanceCreate(createErr, instance) {
     var buttonInitial = $('#submit-button');
     var buttonFinal = $('#final-submit');
