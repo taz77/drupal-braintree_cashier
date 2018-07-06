@@ -149,7 +149,20 @@ class SignupForm extends PlanSelectFormBase {
       $user = $this->userStorage->load($this->currentUser->id());
     }
 
-    $form['dropin_ui'] = $this->billableUser->getDropinUiFormElement($user);
+//    $form['dropin_ui'] = $this->billableUser->getDropinUiFormElement($user);
+    $form['dropin_container'] = [
+      '#type' => 'html_tag',
+      '#tag' => 'div',
+      '#attributes' => [
+        'id' => 'dropin-container',
+      ],
+    ];
+
+    $form['#attached']['library'][] = 'braintree_cashier/signup';
+    $form['#attached']['drupalSettings']['braintree_cashier'] = [
+      'authorization' => $this->billableUser->generateClientToken($user),
+      'acceptPaypal' => (bool) $this->config('braintree_cashier.settings')->get('accept_paypal'),
+    ];
 
     $form['submit'] = [
       '#type' => 'submit',
