@@ -4,6 +4,7 @@ signup:
   dependencies:
     - braintree_cashier/dropin_ui
     - core/drupalSettings
+    - core/jquery
 
 payment_method:
   js:

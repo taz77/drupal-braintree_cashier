@@ -149,7 +149,6 @@ class SignupForm extends PlanSelectFormBase {
       $user = $this->userStorage->load($this->currentUser->id());
     }
 
-//    $form['dropin_ui'] = $this->billableUser->getDropinUiFormElement($user);
     $form['dropin_container'] = [
       '#type' => 'html_tag',
       '#tag' => 'div',
@@ -167,6 +166,7 @@ class SignupForm extends PlanSelectFormBase {
     $form['submit'] = [
       '#type' => 'submit',
       '#name' => 'submit_signup',
+      '#disabled' => TRUE,
       '#attributes' => [
         'id' => 'submit-button',
       ],
