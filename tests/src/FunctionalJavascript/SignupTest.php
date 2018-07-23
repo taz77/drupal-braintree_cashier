@@ -70,6 +70,28 @@ class SignupTest extends JavascriptTestBase {
   }
 
   /**
+   * Tests a declined credit card.
+   *
+   * The declined error message should be displayed and the signup page should
+   * be presented again.
+   */
+  public function testDeclinedCardSignup() {
+    $this->fillInCardForm($this, [
+      'card_number' => '4000111111111115',
+      'expiration' => '1123',
+      'cvv' => '123',
+      'postal_code' => '12345',
+    ]);
+
+    $this->getSession()->getPage()->find('css', '#submit-button')->click();
+    $this->assertSession()->waitForElementVisible('css', '.messages--error', 30000);
+    $this->assertSession()->pageTextContains('Card declined. Please either choose a different payment method or contact your bank to request accepting charges from this website.');
+    // Check that the Drop-In UI is displayed again.
+    $this->assertSession()->waitForElementVisible('css', '.braintree-loaded', 12000);
+    $this->assertSession()->addressMatches('/signup.*/');
+  }
+
+  /**
    * Test that the invoice amounts are correct after signup.
    */
   public function testInvoiceAmount() {
