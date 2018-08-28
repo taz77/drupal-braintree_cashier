@@ -18,7 +18,7 @@
     event.data.instance.requestPaymentMethod(function (requestPaymentMethodErr, payload) {
       if (requestPaymentMethodErr) {
         event.data.buttonInitial.prop('disabled', false)
-          .removeClass('is-disabled')
+          .removeClass('is-disabled');
         return;
       }
       event.data.nonceField.val(payload.nonce);
