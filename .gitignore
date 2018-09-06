@@ -1,1 +1,3 @@
 tests/.env
+node_modules
+icons

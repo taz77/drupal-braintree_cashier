@@ -1,0 +1,12 @@
+{
+  "name": "braintree_cashier",
+  "description": "Node modules to support the Braintree Cashier Drupal module",
+  "scripts": {
+    "install-icons": "fontello-svg --config ./config.json --out ./icons --fill-colors \"grey:rgb(120,120,120)|black:rgb(0,0,0)\""
+  },
+  "author": "Shaun Dychko",
+  "license": "GPL 2",
+  "dependencies": {
+    "fontello-svg": "^0.5.0"
+  }
+}
