@@ -8,7 +8,7 @@ dropin_support:
 
 dropin_ui:
   js:
-    'https://js.braintreegateway.com/web/dropin/1.11.0/js/dropin.min.js': {}
+    'https://js.braintreegateway.com/web/dropin/1.13.0/js/dropin.min.js': {}
 
 plan_select:
   js:
