@@ -102,18 +102,26 @@ class WebhookSubscriber implements EventSubscriberInterface {
         return;
       }
 
-      switch ($event->getKind()) {
-        case \Braintree_WebhookNotification::SUBSCRIPTION_CANCELED:
-        case \Braintree_WebhookNotification::SUBSCRIPTION_EXPIRED:
+      if ($event->getKind() == \Braintree_WebhookNotification::SUBSCRIPTION_CANCELED) {
+        if (empty($braintree_subscription->billingPeriodEndDate)) {
+          // Set a period end date for canceled free trials.
+          $subscription_entity->setPeriodEndDate($braintree_subscription->firstBillingDate->getTimestamp());
+          $subscription_entity->setCancelAtPeriodEnd(TRUE);
+        }
+        else {
           $subscription_entity->setStatus(SubscriptionInterface::CANCELED);
-          $subscription_entity->save();
-          break;
-
-        case \Braintree_WebhookNotification::SUBSCRIPTION_TRIAL_ENDED:
-          $subscription_entity->setIsTrialing(FALSE);
-          $subscription_entity->save();
-          break;
+        }
       }
+
+      if ($event->getKind() == \Braintree_WebhookNotification::SUBSCRIPTION_EXPIRED) {
+        $subscription_entity->setStatus(SubscriptionInterface::CANCELED);
+      }
+
+      if ($event->getKind() == \Braintree_WebhookNotification::SUBSCRIPTION_TRIAL_ENDED) {
+        $subscription_entity->setIsTrialing(FALSE);
+      }
+      
+      $subscription_entity->save();
     }
   }
 
