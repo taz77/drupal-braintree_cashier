@@ -120,7 +120,7 @@ class WebhookSubscriber implements EventSubscriberInterface {
       if ($event->getKind() == \Braintree_WebhookNotification::SUBSCRIPTION_TRIAL_ENDED) {
         $subscription_entity->setIsTrialing(FALSE);
       }
-      
+
       $subscription_entity->save();
     }
   }

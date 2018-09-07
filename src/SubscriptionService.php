@@ -192,6 +192,7 @@ class SubscriptionService {
       if (empty($braintree_subscription->billingPeriodEndDate)) {
         // The billingPeriodEndDate is empty for free trials.
         $this->braintreeApi->getGateway()->subscription()->cancel($braintree_subscription->id);
+        $subscription->setPeriodEndDate($braintree_subscription->firstBillingDate->getTimestamp());
       }
       else {
         // Make the current billing cycle the last billing cycle.
@@ -207,6 +208,10 @@ class SubscriptionService {
   /**
    * Gets whether the subscription entity is managed by Braintree.
    *
+   * A subscription on a free trial that will cancel at period end is not
+   * managed by Braintree since the corresponding Braintree subscription will
+   * have already been canceled.
+   *
    * @param \Drupal\braintree_cashier\Entity\SubscriptionInterface $subscription
    *   The subscription entity.
    *
@@ -214,7 +219,7 @@ class SubscriptionService {
    *   A boolean indicating whether the subscription is managed by Braintree.
    */
   public function isBraintreeManaged(SubscriptionInterface $subscription) {
-    return !empty($subscription->getBraintreeSubscriptionId());
+    return !empty($subscription->getBraintreeSubscriptionId()) && !($subscription->isTrialing() && $subscription->willCancelAtPeriodEnd());
   }
 
   /**
