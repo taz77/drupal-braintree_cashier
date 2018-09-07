@@ -182,19 +182,23 @@ class SubscriptionService {
     if ($this->isBraintreeManaged($subscription)) {
       $braintree_subscription = $this->asBraintreeSubscription($subscription);
 
-      // Cancel now to avoid any more charge attempts.
-      $do_cancel_now = $braintree_subscription->status === \Braintree_Subscription::PAST_DUE;
-      // Cancel free trials immediately. The billingPeriodEndDate is empty for
-      // free trials.
-      $do_cancel_now = $do_cancel_now || empty($braintree_subscription->billingPeriodEndDate);
-      if ($do_cancel_now) {
+      // Cancel now to avoid any more charge attempts on a subscription that is
+      // past due.
+      if ($braintree_subscription->status === \Braintree_Subscription::PAST_DUE) {
         $this->cancelNow($subscription);
         return;
       }
-      // Make the current billing cycle the last billing cycle.
-      $this->braintreeApi->getGateway()->subscription()->update($braintree_subscription->id, [
-        'numberOfBillingCycles' => $braintree_subscription->currentBillingCycle,
-      ]);
+
+      if (empty($braintree_subscription->billingPeriodEndDate)) {
+        // The billingPeriodEndDate is empty for free trials.
+        $this->braintreeApi->getGateway()->subscription()->cancel($braintree_subscription->id);
+      }
+      else {
+        // Make the current billing cycle the last billing cycle.
+        $this->braintreeApi->getGateway()->subscription()->update($braintree_subscription->id, [
+          'numberOfBillingCycles' => $braintree_subscription->currentBillingCycle,
+        ]);
+      }
     }
     $subscription->setCancelAtPeriodEnd(TRUE);
     $subscription->save();
