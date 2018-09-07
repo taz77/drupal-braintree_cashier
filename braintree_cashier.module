@@ -16,6 +16,7 @@ use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\FieldItemListInterface;
+use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Url;
@@ -389,4 +390,55 @@ function braintree_cashier_billing_plan_subscription_type_options() {
   \Drupal::moduleHandler()->alter('braintree_cashier_billing_plan_subscription_type_options', $options);
 
   return $options;
+}
+
+/**
+ * Implements hook_token_info().
+ */
+function braintree_cashier_token_info() {
+  $user['will-cancel-at-period-end'] = [
+    'name' => t('Will cancel at period end'),
+    'description' => t('Whether the currently active subscription will cancel at period end.'),
+  ];
+  $user['is-trialing'] = [
+    'name' => t('Is trialing'),
+    'description' => t('Whether the currently active subscription is on a free trial.'),
+  ];
+  return [
+    'tokens' => [
+      'user' => $user,
+    ],
+  ];
+}
+
+/**
+ * Implements hook_tokens().
+ */
+function braintree_cashier_tokens($type, $tokens, array $data, array $options, BubbleableMetadata $bubbleable_metadata) {
+  /** @var \Drupal\braintree_cashier\BillableUser $billable_user_service */
+  $billable_user_service = \Drupal::service('braintree_cashier.billable_user');
+
+  $replacements = [];
+
+  if ($type == 'user' && !empty($data['user'])) {
+    $user = $data['user'];
+    // It's OK to loop through subscriptions since there should be only one
+    // active subscription.
+    /** @var \Drupal\braintree_cashier\Entity\Subscription $subscription */
+    foreach ($billable_user_service->getSubscriptions($user) as $subscription) {
+      foreach ($tokens as $name => $original) {
+        switch ($name) {
+          case 'will-cancel-at-period-end':
+            $replacements[$original] = $subscription->willCancelAtPeriodEnd() ? 'true' : 'false';
+            break;
+
+          case 'is-trialing':
+            $replacements[$original] = $subscription->isTrialing() ? 'true' : 'false';
+            break;
+        }
+      }
+    }
+  }
+
+  return $replacements;
 }
