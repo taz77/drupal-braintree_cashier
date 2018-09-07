@@ -180,11 +180,14 @@ function braintree_cashier_mail($key, &$message, $params) {
  */
 function braintree_cashier_cron() {
   // Set subscriptions status to canceled for subscriptions with a period end
-  // date earlier than now and which will cancel at period end.
+  // date earlier than now and which will cancel at period end, provided
+  // the period end date is set. Subscriptions which will be canceled by a
+  // webhook from Braintree will not have a period end date set, and will not
+  // be included here.
   $subscription_ids_to_cancel = \Drupal::entityQuery('subscription')
     ->condition('cancel_at_period_end', TRUE)
+    ->exists('period_end_date')
     ->condition('period_end_date', time(), '<')
-    ->condition('subscription_type', SubscriptionInterface::FREE)
     ->condition('status', SubscriptionInterface::ACTIVE)
     ->execute();
 
