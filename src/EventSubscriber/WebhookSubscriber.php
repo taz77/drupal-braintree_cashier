@@ -103,9 +103,15 @@ class WebhookSubscriber implements EventSubscriberInterface {
       }
 
       if ($event->getKind() == \Braintree_WebhookNotification::SUBSCRIPTION_CANCELED) {
+        // The nextBillingDate will be empty only for webhooks simulated by
+        // \Braintree\WebhookTestingGateway::_subscriptionSampleXml.
+        $is_test_webhook = empty($braintree_subscription->nextBillingDate);
         if (empty($braintree_subscription->billingPeriodEndDate)) {
           // Set a period end date for canceled free trials.
-          $subscription_entity->setPeriodEndDate($braintree_subscription->firstBillingDate->getTimestamp());
+          if ($is_test_webhook) {
+            $braintree_subscription->nextBillingDate = new \DateTime("2019-01-01");
+          }
+          $subscription_entity->setPeriodEndDate($braintree_subscription->nextBillingDate->getTimestamp());
           $subscription_entity->setCancelAtPeriodEnd(TRUE);
         }
         else {

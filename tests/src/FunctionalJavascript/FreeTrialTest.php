@@ -2,8 +2,10 @@
 
 namespace Drupal\Tests\braintree_cashier\FunctionalJavascript;
 
+use Drupal\braintree_cashier\Entity\SubscriptionInterface;
 use Drupal\Core\Url;
 use Drupal\FunctionalJavascriptTests\JavascriptTestBase;
+use Drupal\user\Entity\User;
 
 /**
  * Test free trials.
@@ -83,15 +85,15 @@ class FreeTrialTest extends JavascriptTestBase {
   }
 
   /**
-   * Tests that canceling a free trial makes the subscription status canceled.
+   * Tests that canceling a free trial makes the subscription remain active.
    */
-  public function testImmediateCancel() {
+  public function testCancel() {
     $this->testFreeTrialSignup();
     $this->drupalGet(Url::fromRoute('braintree_cashier.cancel_confirm', [
       'user' => $this->account->id(),
     ]));
     $this->getSession()->getPage()->pressButton('Yes, I wish to cancel.');
-    $this->assertSession()->elementTextContains('css', '.current-subscription-label', 'None');
+    $this->assertSession()->elementTextContains('css', '.current-subscription-label', 'Canceled -- access expires on');
   }
 
   /**
@@ -101,7 +103,19 @@ class FreeTrialTest extends JavascriptTestBase {
    * the 'had_free_trial' boolean on the user entity.
    */
   public function testNoSecondFreeTrial() {
-    $this->testImmediateCancel();
+    $this->testCancel();
+
+    // Fully cancel this user's subscription.
+    /** @var \Drupal\braintree_cashier\BillableUser $billable_user_service */
+    $billable_user_service = \Drupal::service('braintree_cashier.billable_user');
+    $user_entity = User::load($this->account->id());
+    $subscriptions = $billable_user_service->getSubscriptions($user_entity);
+    /** @var \Drupal\braintree_cashier\Entity\Subscription $subscription */
+    foreach ($subscriptions as $subscription) {
+      $subscription->setStatus(SubscriptionInterface::CANCELED);
+      $subscription->save();
+    }
+
     $this->drupalGet(Url::fromRoute('braintree_cashier.my_subscription', [
       'user' => $this->account->id(),
     ]));
