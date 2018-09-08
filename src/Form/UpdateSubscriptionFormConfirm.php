@@ -182,6 +182,8 @@ class UpdateSubscriptionFormConfirm extends ConfirmFormBase {
       'user' => $this->account->id(),
     ]);
     $success_message = t('Your subscription has been updated!');
+
+    $payload_options = [];
     if (!empty($subscriptions = $this->billableUser->getSubscriptions($this->account))) {
       // An active subscription exists, so swap it.
       if (count($subscriptions) > 1) {
@@ -191,6 +193,7 @@ class UpdateSubscriptionFormConfirm extends ConfirmFormBase {
         $this->bcService->sendAdminErrorEmail($message);
         return;
       }
+      /** @var \Drupal\braintree_cashier\Entity\Subscription $subscription */
       $subscription = array_shift($subscriptions);
       if ($this->subscriptionService->isBraintreeManaged($subscription)) {
         $result = $this->subscriptionService->swap($subscription, $this->billingPlan, $this->account);
@@ -209,13 +212,39 @@ class UpdateSubscriptionFormConfirm extends ConfirmFormBase {
         }
       }
       else {
+        if ($subscription->isTrialing() && $subscription->willCancelAtPeriodEnd() && !empty($subscription->getPeriodEndDate())) {
+          // Pro-rate the free trial duration by subtracting the number of days
+          // of the currently active free trial from the number of days intended
+          // by the Braintree Billing Plan for the new subscription.
+          $braintree_billing_plan = $this->bcService->getBraintreeBillingPlan($this->billingPlan->getBraintreePlanId());
+          if ($braintree_billing_plan->trialPeriod) {
+            $trial_duration_days = $braintree_billing_plan->trialDuration;
+            if ($braintree_billing_plan->trialDurationUnit == 'month') {
+              $trial_duration_days *= 30;
+            }
+            $start = new \DateTime('@' . $subscription->getCreatedTime());
+            $end = new \DateTime('@' . time());
+            if ($end->diff($start)->format('%d') <= $trial_duration_days) {
+              $payload_options['trialDuration'] = $trial_duration_days - $end->diff($start)->format('%d');
+              $payload_options['trialDurationUnit'] = 'day';
+            }
+            else {
+              $payload_options['trialPeriod'] = FALSE;
+            }
+          }
+        }
         $this->subscriptionService->cancelNow($subscription);
       }
+    }
+    elseif ($this->billingPlan->hasFreeTrial()) {
+      // Override the trialPeriod setting if the billing plan has free trials.
+      // Each account gets only one free trial.
+      $payload_options['trialPeriod'] = !$this->account->get('had_free_trial')->value;
     }
 
     $payment_method = $this->billableUser->getPaymentMethod($this->account);
     $coupon_code = $form_state->getValue('coupon_code');
-    if (empty($braintree_subscription = $this->subscriptionService->createBraintreeSubscription($this->account, $payment_method->token, $this->billingPlan, [], $coupon_code))) {
+    if (empty($braintree_subscription = $this->subscriptionService->createBraintreeSubscription($this->account, $payment_method->token, $this->billingPlan, $payload_options, $coupon_code))) {
       drupal_set_message(t('You have not been charged.'), 'error');
       return;
     }
