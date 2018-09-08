@@ -468,11 +468,6 @@ class SubscriptionService {
       'planId' => $billing_plan->getBraintreePlanId(),
     ], $options);
 
-    // Override the trialPeriod setting if the billing plan has free trials.
-    if ($billing_plan->hasFreeTrial()) {
-      $payload['trialPeriod'] = !$user->get('had_free_trial')->value;
-    }
-
     if (!empty($coupon)) {
       $payload = $this->addCouponToPayload($coupon, $payload);
     }
