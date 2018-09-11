@@ -495,8 +495,9 @@ class BillableUser {
    * @param mixed $payment_method
    *   The payment method object.
    *
-   * @return bool
-   *   A boolean indicating whether another user account owns the method.
+   * @return array|bool
+   *   An array of other uids that have this payment method, or FALSE if
+   *   no other account is using this payment method.
    */
   public function isDuplicatePaymentMethod(User $user, $payment_method) {
     $query = $this->userStorage->getQuery();
@@ -512,7 +513,7 @@ class BillableUser {
       // Either no user owns this payment method, or only the given user does.
       return FALSE;
     }
-    return TRUE;
+    return $uids;
   }
 
   /**
@@ -553,10 +554,11 @@ class BillableUser {
    *   A boolean indicating success with preventing duplicate payment methods.
    */
   public function preventDuplicatePaymentMethods(User $user, $payment_method) {
-    if ($this->isDuplicatePaymentMethod($user, $payment_method)) {
+    if (!empty($uids = $this->isDuplicatePaymentMethod($user, $payment_method))) {
       $this->braintreeApiService->getGateway()->paymentMethod()->delete($payment_method->token);
       drupal_set_message($this->bcConfig->get('duplicate_payment_method_message'), 'error');
-      $this->logger->error($this->bcConfig->get('duplicate_payment_method_message'));
+      $this->logger->error('Duplicate payment method. User account uids with this payment method: %uids',
+        ['%uids' => print_r($uids, TRUE)]);
       return FALSE;
     }
     if (!$this->recordPaymentMethodIdentifier($user, $payment_method)) {
