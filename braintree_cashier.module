@@ -192,11 +192,16 @@ function braintree_cashier_cron() {
     ->condition('status', SubscriptionInterface::ACTIVE)
     ->execute();
 
+  /** @var \Drupal\braintree_cashier\SubscriptionService $subscription_service */
+  $subscription_service = \Drupal::service('braintree_cashier.subscription_service');
+
   $subscriptions = Subscription::loadMultiple($subscription_ids_to_cancel);
   foreach ($subscriptions as $subscription) {
     /** @var \Drupal\braintree_cashier\Entity\SubscriptionInterface $subscription */
-    $subscription->setStatus(SubscriptionInterface::CANCELED);
-    $subscription->save();
+    if (!$subscription_service->isBraintreeManaged($subscription)) {
+      $subscription->setStatus(SubscriptionInterface::CANCELED);
+      $subscription->save();
+    }
   }
 
   // Periodically retrieve expiring free trials for notification.

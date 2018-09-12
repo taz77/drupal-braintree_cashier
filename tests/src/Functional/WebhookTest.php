@@ -51,7 +51,7 @@ class WebhookTest extends BrowserTestBase {
    *
    * @var string
    */
-   protected $paidSubscriptionEntityId;
+  protected $paidSubscriptionEntityId;
 
   /**
    * The Braintree API service.
