@@ -96,6 +96,7 @@ function braintree_cashier_theme() {
     'template' => 'my-subscription',
     'variables' => [
       'current_subscription_label' => NULL,
+      'current_subscription_label__suffix' => NULL,
       'update_subscription_form' => NULL,
       'current_subscription_entity' => NULL,
       'signup_button' => NULL,
