@@ -751,7 +751,7 @@ class SubscriptionService {
       $timestamp = $current_subscription->getPeriodEndDate();
     }
     $data = [
-      'formatted_period_end_date' => !empty($timestamp) ? $this->dateFormatter->format($timestamp, 'html_date') : '',
+      'formatted_period_end_date' => !empty($timestamp) ? $this->dateFormatter->format($timestamp, 'long') : '',
       'timestamp' => $timestamp,
       'subscription_entity' => $current_subscription,
     ];
