@@ -21,6 +21,7 @@ use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Url;
 use Drupal\user\Entity\User;
+use Drupal\user\UserInterface;
 
 /**
  * Implements hook_help().
@@ -325,6 +326,26 @@ function braintree_cashier_user_insert(User $user) {
       }
     }
   }
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_update().
+ *
+ * Update the email address stored in Braintree when the user updates their
+ * email address locally.
+ */
+function braintree_cashier_user_update(UserInterface $user) {
+  /** @var \Drupal\user\UserInterface $original */
+  $original = $user->original;
+  if ($user->getEmail() != $original->getEmail()) {
+    /** @var \Drupal\braintree_cashier\BillableUser $billable_user_service */
+    $billable_user_service = \Drupal::service('braintree_cashier.billable_user');
+    if (!empty($billable_user_service->getBraintreeCustomerId($user))) {
+      $billable_user_service->updateVaultedEmail($user);
+    }
+
+  }
+
 }
 
 /**

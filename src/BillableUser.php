@@ -18,6 +18,7 @@ use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Theme\ThemeManagerInterface;
 use Drupal\user\Entity\User;
+use Drupal\user\UserInterface;
 
 /**
  * BillableUser class provides functions that apply to the user entity.
@@ -191,13 +192,13 @@ class BillableUser {
   /**
    * Gets the Braintree customer ID.
    *
-   * @param \Drupal\user\Entity\User $user
+   * @param \Drupal\user\UserInterface $user
    *   The user entity.
    *
    * @return string
    *   The Braintree customer ID.
    */
-  public function getBraintreeCustomerId(User $user) {
+  public function getBraintreeCustomerId(UserInterface $user) {
     return $user->get('braintree_customer_id')->value;
   }
 
@@ -222,7 +223,7 @@ class BillableUser {
   /**
    * Gets the subscription entities for a user.
    *
-   * @param \Drupal\user\Entity\User $user
+   * @param \Drupal\user\UserInterface $user
    *   The user entity.
    * @param bool $active
    *   Whether to return only subscriptions that are currently active.
@@ -230,7 +231,7 @@ class BillableUser {
    * @return \Drupal\Core\Entity\EntityInterface[]
    *   An array of subscription entities.
    */
-  public function getSubscriptions(User $user, $active = TRUE) {
+  public function getSubscriptions(UserInterface $user, $active = TRUE) {
     $query = $this->subscriptionStorage->getQuery();
     $query->condition('subscribed_user.target_id', $user->id());
     if ($active) {
@@ -569,6 +570,27 @@ class BillableUser {
       return FALSE;
     }
     return TRUE;
+  }
+
+  /**
+   * Update the vaulted email address stored in Braintree for a given user.
+   *
+   * The email address in Braintree will be set to the current email of the
+   * provided user entity. Before utilizing this function, ensure that the user
+   * entity is already vaulted in Braintree by checking for a Braintree customer
+   * ID.
+   *
+   * @param \Drupal\user\UserInterface $user
+   *   The user entity for which to update the email address.
+   */
+  public function updateVaultedEmail(UserInterface $user) {
+    $gateway = $this->braintreeApiService->getGateway();
+    $gateway->customer()->update($this->getBraintreeCustomerId($user), [
+      'email' => $user->getEmail(),
+    ]);
+    $this->logger->notice('Updated email address in Braintree vault to @new_email', [
+      '@new_email' => $user->getEmail(),
+    ]);
   }
 
 }
