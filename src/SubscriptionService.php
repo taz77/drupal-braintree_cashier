@@ -635,9 +635,8 @@ class SubscriptionService {
     $violations = $subscription_entity->validate();
     foreach ($violations as $violation) {
       /** @var \Symfony\Component\Validator\ConstraintViolationInterface $violation */
-      $admin_message = $this->t('Constraint validation failed when creating a subscription. Message: %message, Invalid value: %value', [
+      $admin_message = $this->t('Constraint validation failed when creating a subscription. Message: %message', [
         '%message' => $violation->getMessage(),
-        '%value' => print_r($violation->getInvalidValue(), TRUE),
       ]);
       $this->logger->error($admin_message);
     }
