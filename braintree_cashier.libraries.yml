@@ -7,8 +7,14 @@ dropin_support:
     - core/jquery
 
 dropin_ui:
+  remote: https://github.com/braintree/braintree-web-drop-in
+  version: "1.13.0"
+  license:
+    name: MIT
+    url: https://github.com/braintree/braintree-web-drop-in/blob/master/LICENSE
+    gpl-compatible: true
   js:
-    'https://js.braintreegateway.com/web/dropin/1.13.0/js/dropin.min.js': {}
+    'https://js.braintreegateway.com/web/dropin/1.13.0/js/dropin.min.js': { type: external, minified: true }
 
 plan_select:
   js:
